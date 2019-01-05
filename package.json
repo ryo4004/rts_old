@@ -4,8 +4,53 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "watch": "webpack -w",
+    "build-js": "webpack --config webpack.dev.js",
+    "build-production": "webpack --config webpack.prod.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build-css": "node-sass-chokidar client/src/ -o client/src/ --output-style compressed",
+    "watch-css": "npm run build-css && webpack -w",
+    "build": "npm run build-css && npm run build-js",
+    "build-prod": "npm run build-css && npm run build-production",
+    "build-dev": "npm run build-css && npm run build-js -- --devtool source-map",
+    "dev-start": "npm run build-dev; DEBUG=express:* node app.js"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "babel-polyfill": "^6.26.0",
+    "body-parser": "^1.18.3",
+    "compression": "^1.7.3",
+    "connected-react-router": "^6.1.0",
+    "express": "^4.16.4",
+    "history": "^4.7.2",
+    "nedb": "^1.8.0",
+    "project-version": "^1.2.0",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-redux": "^6.0.0",
+    "react-router-dom": "^4.3.1",
+    "redux": "^4.0.1",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^2.3.0",
+    "socket.io-client": "^2.2.0",
+    "socketio": "^1.0.0",
+    "superagent": "^4.1.0"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.2.2",
+    "@babel/polyfill": "^7.2.5",
+    "@babel/preset-env": "^7.2.3",
+    "@babel/preset-es2015": "^7.0.0-beta.53",
+    "@babel/preset-react": "^7.0.0",
+    "babel-loader": "^8.0.4",
+    "css-loader": "^2.1.0",
+    "node-sass-chokidar": "^1.3.4",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.28.3",
+    "webpack-cli": "^3.2.0",
+    "webpack-merge": "^4.1.5"
+  }
 }

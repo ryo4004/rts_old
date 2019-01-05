@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="format-detection" content="telephone=no">
+  <meta name="msapplication-tap-highlight" content="no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff">
+  <meta name="apple-mobile-web-app-title" content="RTS">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Zatsuzen Blog">
+  <title>RTS</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="shortcut icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="https://zatsuzen.com/apple-touch-icon.png">
+  <!-- <link rel="icon" type="image/png" href="android-chrome.png"> -->
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.0.0/polyfill.min.js" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+</head>
+<body>
+  <noscript>
+    You need to enable JavaScript to run this application.
+  </noscript>
+  <div id="root"></div>
+  <div id="error"></div>
+  <script src="bundle.js"></script>
+  <script>
+    // Service Worker Suspended
+    window.addEventListener('load', () => {
+      if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then((registration) => {}).catch((err) => {})
+    })
+
+    window.addEventListener('unhandledrejection', reason => {
+      // document.getElementById('error').innerHTML(reason)
+      console.error('Unhandled Rejection', reason)
+    })
+  </script>
+</body>
+</html>
