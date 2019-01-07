@@ -9,7 +9,7 @@ import { prepare } from '../../../Actions/Status'
 
 import { getDate } from '../../../Library/Library'
 
-import './Home.css'
+import './Reciever.css'
 
 function mapStateToProps(state) {
   return {
@@ -31,7 +31,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class Home extends Component {
+class Reciever extends Component {
   constructor (props) {
     super(props)
     // this.props.loadList()
@@ -99,4 +99,4 @@ class Home extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home)
+export default connect(mapStateToProps, mapDispatchToProps)(Reciever)

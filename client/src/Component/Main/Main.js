@@ -5,6 +5,7 @@ import { connect } from 'react-redux'
 import { setLocation, windowWidthChange } from '../../Actions/Status'
 
 import Home from './Home/Home'
+import Reciever from './Reciever/Reciever'
 
 function mapStateToProps(state) {
   return {
@@ -27,21 +28,12 @@ function mapDispatchToProps(dispatch) {
 class Main extends Component {
   constructor (props) {
     super(props)
-    this.contetns = React.createRef()
+    this.contents = React.createRef()
   }
-  
+
   componentWillMount () {
     // 過去のlocation情報が存在する場合はそのページへRedirect
     // this.props.setLocation(window.localStorage.location ? window.localStorage.location : false)
-  }
-
-  componentWillReceiveProps (nextProps, nextContext) {
-    if(this.contents) {
-      this.contents.scrollTop = 0
-    }
-  }
-
-  componentDidUpdate () {
   }
 
   // Windowサイズの検出と記録
@@ -59,11 +51,12 @@ class Main extends Component {
   render () {
     const { mobile, location } = this.props
     const mobileMode = mobile ? ' mobile' : ' pc'
-    // console.log('location',location)
+    console.log('location',location)
     // if (loading) return <div className='full-loading'><div className="loading"><div className="loading1"></div><div className="loading2"></div><div className="loading3"></div></div></div>
     return (
       <div className={'contents' + mobileMode} ref={this.contents}>
         <Switch>
+          <Route path='/:id' component={Reciever} />
           <Route path='/' component={Home} />
         </Switch>
       </div>

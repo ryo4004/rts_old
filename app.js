@@ -41,7 +41,7 @@ app.use(compression({
 // クライアントアプリを返す
 const client = './client/build'
 app.use('/', express.static(client))
-app.use('/presenter', express.static(client))
+app.use('/:id', express.static(client))
 
 // データベース準備
 const NeDB = require('nedb')
@@ -54,7 +54,6 @@ const statusDB = new NeDB({
 statusDB.remove({}, {multi: true}, (err, numRemoved) => {
   console.log('[' + lib.showTime() + '] statusDB refresh: ' + numRemoved)
 })
-
 
 // api設定
 app.post('/api/presenter', (req, res) => {
@@ -79,38 +78,42 @@ app.post('/api/recorder', (req, res) => {
 const io = require('socket.io')(server)
 
 io.on('connection', (socket) => {
-  console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id)
+  const id = lib.randomString()
+  // const sid = shortid.generate()
+  io.to(socket.client.id).emit('id', id)
+  
+  console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
 
-  socket.on('recorder_standby', (data) => {
-    console.log('(socket)[' + lib.showTime() + '] recorder_standby: ', data)
-    const reg = {type: 'recorder', status: data.status, id: data.recorderid}
-    statusDB.insert(reg, (err, newdoc) => {
-      if (err) return console.log('recorder standbyエラー')
-      console.log('recorder standby...')
-      // console.log(newdoc)
-      io.emit('recorder_standby', data)
-    })
-  })
+  // socket.on('recorder_standby', (data) => {
+  //   console.log('(socket)[' + lib.showTime() + '] recorder_standby: ', data)
+  //   const reg = {type: 'recorder', status: data.status, id: data.recorderid}
+  //   statusDB.insert(reg, (err, newdoc) => {
+  //     if (err) return console.log('recorder standbyエラー')
+  //     console.log('recorder standby...')
+  //     // console.log(newdoc)
+  //     io.emit('recorder_standby', data)
+  //   })
+  // })
 
-  socket.on('cast_start', (data) => {
-    console.log('(socket)[' + lib.showTime() + '] cast_start: ', data)
-    const reg = {type: 'presenter', status: data.status, id: data.presenterid}
-    statusDB.insert(reg, (err, newdoc) => {
-      if (err) return console.log('cast startエラー')
-      console.log('cast start...')
-      io.emit('cast_start', data)
-    })
-  })
+  // socket.on('cast_start', (data) => {
+  //   console.log('(socket)[' + lib.showTime() + '] cast_start: ', data)
+  //   const reg = {type: 'presenter', status: data.status, id: data.presenterid}
+  //   statusDB.insert(reg, (err, newdoc) => {
+  //     if (err) return console.log('cast startエラー')
+  //     console.log('cast start...')
+  //     io.emit('cast_start', data)
+  //   })
+  // })
 
-  socket.on('cast_end', (data) => {
-    console.log('(socket)[' + lib.showTime() + '] cast_end: ', data)
-    const reg = {type: 'presenter', status: data.status, id: data.presenterid}
-    statusDB.update({id: data.presenterid}, reg, {}, (err, newdoc) => {
-      if (err) return console.log('cast endエラー')
-      console.log('cast end')
-      io.emit('cast_end', data)
-    })
-  })
+  // socket.on('cast_end', (data) => {
+  //   console.log('(socket)[' + lib.showTime() + '] cast_end: ', data)
+  //   const reg = {type: 'presenter', status: data.status, id: data.presenterid}
+  //   statusDB.update({id: data.presenterid}, reg, {}, (err, newdoc) => {
+  //     if (err) return console.log('cast endエラー')
+  //     console.log('cast end')
+  //     io.emit('cast_end', data)
+  //   })
+  // })
 
   // SDP交換
   // Receiver から Presenter へ
@@ -135,15 +138,15 @@ io.on('connection', (socket) => {
   // 切断時処理
   socket.on('disconnecting', (reason) => {
     console.log('(socket)[' + lib.showTime() + '] disconnecting: ', socket.client.id, reason)
-    statusDB.findOne({id: socket.client.id}, (err, status) => {
-      if (err) return console.log('findOneエラー')
-      if (!status) return console.log(socket.client.id + ' is Receiver')
-      console.log(status.type)
-      statusDB.remove({id: socket.client.id}, {multi: false}, (err,numRemoved) => {
-        if (err || !numRemoved) return console.log('removeエラー')
-        console.log(socket.client.id + ' stanby終了')
-      })
-    })
+    // statusDB.findOne({id: socket.client.id}, (err, status) => {
+    //   if (err) return console.log('findOneエラー')
+    //   if (!status) return console.log(socket.client.id + ' is Receiver')
+    //   console.log(status.type)
+    //   statusDB.remove({id: socket.client.id}, {multi: false}, (err,numRemoved) => {
+    //     if (err || !numRemoved) return console.log('removeエラー')
+    //     console.log(socket.client.id + ' stanby終了')
+    //   })
+    // })
   })
 })
 

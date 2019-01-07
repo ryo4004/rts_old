@@ -1,3 +1,5 @@
+const uniqid = require('uniqid')
+
 function getHash (pass) {
   const salt = '::HXAuymPGKKcThn6n'
   const crypto = require('crypto')
@@ -11,14 +13,21 @@ function getAuthToken (userid) {
   return getHash(userid + time)
 }
 
-function getUniqueString (length){
+function getUniqueString (length) {
   const strong = length ? Math.pow(10,length) : 1000
   return new Date().getTime().toString(16) + Math.floor(strong*Math.random()).toString(16)
 }
 
-function getRandomString (length){
+function getRandomString (length) {
   const strong = length ? Math.pow(10,length+1) : 1000
   return Math.floor(strong*Math.random()).toString(16)
+}
+
+function randomString () {
+  const character = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let id = ''
+  for (var i=0; i<8; i++) { id += character[Math.floor(Math.random()*character.length)] }
+  return uniqid.time() + id
 }
 
 function escapeReg (string) {
@@ -38,5 +47,5 @@ function showTime () {
 }
 
 module.exports = {
-  getHash, getAuthToken, getUniqueString, getRandomString, escapeReg, showTime
+  getHash, getAuthToken, getUniqueString, getRandomString, randomString, escapeReg, showTime
 }
