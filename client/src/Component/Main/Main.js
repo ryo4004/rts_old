@@ -51,7 +51,7 @@ class Main extends Component {
     return (
       <div className={'contents' + mobileMode} ref={this.contents}>
         <Switch>
-          <Route path='/:otherid' component={Reciever} />
+          <Route path='/:senderID' component={Reciever} />
           <Route path='/' component={Sender} />
         </Switch>
       </div>

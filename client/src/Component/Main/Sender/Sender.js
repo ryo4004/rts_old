@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
-import { connectSocket } from '../../../Actions/Socket'
+import { connectSocket } from '../../../Actions/Sender'
 
 import './Sender.css'
 
@@ -15,9 +15,9 @@ function mapStateToProps(state) {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
-    socket: state.socket.socket,
-    selfid: state.socket.selfid,
-    otherid: state.socket.otherid,
+    socket: state.sender.socket,
+    selfID: state.sender.selfID,
+    recieverID: state.sender.recieverID,
 
     fileAPI: state.status.fileAPI,
     available: state.status.available
@@ -64,13 +64,16 @@ class Sender extends Component {
 
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
-    const socketid = this.props.socket ? this.props.socket.id : '-'
-    const selfid = this.props.selfid ? this.props.selfid : '-'
+    const socketID = this.props.socket ? this.props.socket.id : '-'
+    const selfID = this.props.selfID ? this.props.selfID : '-'
+    const recieverID = this.props.recieverID ? this.props.recieverID : '-'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
-        <div>socketid: {socketid}</div>
-        <div>url: https://192.168.1.254/{selfid}</div>
+        <div>socketID: {socketID}</div>
+        <div>selfID: {selfID}</div>
+        <div>recieverID: {recieverID}</div>
+        <div>url: <a href={'https://192.168.1.254:3000/' + selfID} target='_blank'>https://192.168.1.254:3000/{selfID}</a></div>
       </div>
     )
   }

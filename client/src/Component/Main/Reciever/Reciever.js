@@ -6,9 +6,7 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
-import { connectSocket } from '../../../Actions/Socket'
-
-import { getDate } from '../../../Library/Library'
+import { connectSocket } from '../../../Actions/Reciever'
 
 import './Reciever.css'
 
@@ -17,9 +15,9 @@ function mapStateToProps(state) {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
-    socket: state.socket.socket,
-    selfid: state.socket.selfid,
-    otherid: state.socket.otherid,
+    socket: state.reciever.socket,
+    selfID: state.reciever.selfID,
+    senderID: state.reciever.senderID,
 
     fileAPI: state.status.fileAPI,
     available: state.status.available
@@ -45,8 +43,8 @@ class Reciever extends Component {
   componentDidMount () {
     this.props.prepare()
     const { params } = this.props.match
-    const otherid = params.otherid ? params.otherid : ''
-    this.props.connectSocket(otherid)
+    const senderID = params.senderID ? params.senderID : ''
+    this.props.connectSocket(senderID)
     console.warn(this.props)
 
     // 接続リクエストする
@@ -75,11 +73,15 @@ class Reciever extends Component {
 
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
-    const socketid = this.props.socket ? this.props.socket.id : '-'
+    const socketID = this.props.socket ? this.props.socket.id : '-'
+    const selfID = this.props.selfID ? this.props.selfID : '-'
+    const senderID = this.props.senderID ? this.props.senderID : '-'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
-        <div>socketid: {socketid}</div>
+        <div>socketid: {socketID}</div>
+        <div>selfID: {selfID}</div>
+        <div>senderID: {senderID}</div>
       </div>
     )
   }

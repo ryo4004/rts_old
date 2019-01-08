@@ -77,33 +77,68 @@ app.post('/api/recorder', (req, res) => {
 // WebSocketサーバを使用
 const io = require('socket.io')(server)
 
+// function getSocketID (id, callback) {
+//   statusDB.findOne({ id }, (err, status) => {
+//     if (err) return callback('[getSocketID] database error: findOneエラー', null)
+//     if (!status) return callback('[getSocketID] ' + id + ' not found', null)
+//     return callback(null, status.socketid)
+//   })
+// }
+
+const getSocketID = (id) => {
+  return new Promise((resolve, reject) => {
+    statusDB.findOne({ id }, (err, status) => {
+      if (err) return resolve(null, 'id error')
+      if (!status) return resolve(null, 'id error')
+      console.log(status)
+      return resolve(status.socketid, null)
+    })
+  })
+}
+
 // 接続処理
 io.on('connection', (socket) => {
+  // URL用ID作成
   const id = lib.randomString()  
-  console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
+  // console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
   const reg = { status: 'connection', socketid: socket.client.id, id }
   statusDB.insert(reg, (err, newdoc) => {
     if (err) return console.log('database error')
     // id を通知
     io.to(socket.client.id).emit('connection_complete', { id })
-    console.log('(socket)[' + lib.showTime() + '] connect complete: ' + socket.client.id)
+    console.log('(socket)[' + lib.showTime() + '] connect complete: ' + socket.client.id, id)
   })
 
-  socket.on('request_id', (data) => {
-    console.log('(socket)[' + lib.showTime() + '] request_id: ', data)
-    
-    io.to(socket.client.id).emit('request_id', { id })
+  // First request from Reciever to Sender
+  // socket.on('request_to_sender', (obj) => {
+  //   console.log('(socket)[' + lib.showTime() + '] request_to_sender: ', obj)
+  //   getSocketID(obj.from, (err, fromSocket) => {
+  //     console.log('from: ', fromSocket)
+  //     getSocketID(obj.to, (err, toSocket) => {
+  //       console.log('to: ', toSocket)
+  //       io.to(toSocket).emit('request_to_sender', obj)
+  //     })
+  //   })
+  // })
+
+  // First request from Reciever to Sender
+  socket.on('request_to_sender', async (obj) => {
+    console.log('(socket)[' + lib.showTime() + '] request_to_sender: ', obj)
+    const fromSocket = await getSocketID(obj.from)
+    const toSocket = await getSocketID(obj.to)
+    console.log('from: ', fromSocket)
+    console.log('to: ', toSocket)
+    io.to(toSocket).emit('request_to_sender', obj)
   })
 
   // 接続解除
   socket.on('disconnecting', (reason) => {
-    console.log('(socket)[' + lib.showTime() + '] disconnecting: ', socket.client.id, reason)
     statusDB.findOne({socketid: socket.client.id}, (err, status) => {
       if (err) return console.log('database error: findOneエラー')
       if (!status) return console.log(socket.client.id + ' not found')
       statusDB.remove({socketid: socket.client.id}, {multi: false}, (err,numRemoved) => {
         if (err || !numRemoved) return console.log('database error: removeエラー')
-        console.log('(socket)[' + lib.showTime() + '] disconnect complete: ' + socket.client.id)
+        console.log('(socket)[' + lib.showTime() + '] disconnect complete: ' + socket.client.id, reason)
       })
     })
   })
