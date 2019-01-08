@@ -46,7 +46,7 @@ class Main extends Component {
   render () {
     const { mobile, location } = this.props
     const mobileMode = mobile ? ' mobile' : ' pc'
-    console.log('location',location)
+    // console.log('location',location)
     // if (loading) return <div className='full-loading'><div className="loading"><div className="loading1"></div><div className="loading2"></div><div className="loading3"></div></div></div>
     return (
       <div className={'contents' + mobileMode} ref={this.contents}>

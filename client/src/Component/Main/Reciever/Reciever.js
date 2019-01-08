@@ -45,7 +45,6 @@ class Reciever extends Component {
     const { params } = this.props.match
     const senderID = params.senderID ? params.senderID : ''
     this.props.connectSocket(senderID)
-    console.warn(this.props)
 
     // 接続リクエストする
     this.requestPeer()

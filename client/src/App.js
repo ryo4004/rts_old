@@ -16,7 +16,7 @@ const store = createStore(
   compose(
     applyMiddleware(
       routerMiddleware(history),
-      logger,
+      // logger,
       thunk
     )
   )

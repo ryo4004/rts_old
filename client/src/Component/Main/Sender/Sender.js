@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
-import { connectSocket } from '../../../Actions/Sender'
+import { connectSocket, sendData } from '../../../Actions/Sender'
 
 import './Sender.css'
 
@@ -31,6 +31,9 @@ function mapDispatchToProps(dispatch) {
     },
     connectSocket () {
       dispatch(connectSocket(false))
+    },
+    sendData () {
+      dispatch(sendData())
     }
   }
 }
@@ -99,6 +102,7 @@ class Sender extends Component {
             <label className='file'>ファイルを準備
               <input type='file' className='file' />
             </label>
+            <button onClick={() => this.props.sendData()}>送信</button>
           </div>
           {/* <button className='standby'></button> */}
         </div>

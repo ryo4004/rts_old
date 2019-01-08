@@ -90,7 +90,6 @@ const getSocketID = (id) => {
     statusDB.findOne({ id }, (err, status) => {
       if (err) return resolve(null, 'id error')
       if (!status) return resolve(null, 'id error')
-      console.log(status)
       return resolve(status.socketid, null)
     })
   })
@@ -124,11 +123,32 @@ io.on('connection', (socket) => {
   // First request from Reciever to Sender
   socket.on('request_to_sender', async (obj) => {
     console.log('(socket)[' + lib.showTime() + '] request_to_sender: ', obj)
-    const fromSocket = await getSocketID(obj.from)
+    // const fromSocket = await getSocketID(obj.from)
     const toSocket = await getSocketID(obj.to)
-    console.log('from: ', fromSocket)
+    // console.log('from: ', fromSocket)
     console.log('to: ', toSocket)
     io.to(toSocket).emit('request_to_sender', obj)
+  })
+
+  // Reciever send offer
+  socket.on('send_offer_sdp', async (obj) => {
+    console.log('(socket)[' + lib.showTime() + '] send_offer_sdp: ', obj)
+    const toSocket = await getSocketID(obj.to)
+    io.to(toSocket).emit('send_offer_sdp', obj)
+  })
+  
+  // Sender send answer
+  socket.on('send_answer_sdp', async (obj) => {
+    console.log('(socket)[' + lib.showTime() + '] send_answer_sdp: ', obj)
+    const toSocket = await getSocketID(obj.to)
+    io.to(toSocket).emit('send_answer_sdp', obj)
+  })
+
+  // お互いに交換
+  socket.on('send_found_candidate', async (obj) => {
+    const toSocket = await getSocketID(obj.to)
+    console.log('(socket)[' + lib.showTime() + '] find: from ' + obj.from + ' to ' +  obj.to)
+    io.to(toSocket).emit('send_found_candidate', obj)
   })
 
   // 接続解除
@@ -176,23 +196,18 @@ io.on('connection', (socket) => {
 
   // SDP交換
   // Receiver から Presenter へ
-  socket.on('offer', (data) => {
-    const to = data.to
-    console.log('(socket)[' + lib.showTime() + '] send offer to: ', to)
-    io.to(to).emit('offer', data)
-  })
-  // Presenter から Receiver へ
-  socket.on('answer', (data) => {
-    const to = data.to
-    console.log('(socket)[' + lib.showTime() + '] send answer to: ', to)
-    io.to(to).emit('answer', data)
-  })
-  // お互いに交換
-  socket.on('find', (data) => {
-    const to = data.to
-    console.log('(socket)[' + lib.showTime() + '] find: from ' + data.from + ' to ' +  data.to)
-    io.to(to).emit('find', data)
-  })
+  // socket.on('offer', (data) => {
+  //   const to = data.to
+  //   console.log('(socket)[' + lib.showTime() + '] send offer to: ', to)
+  //   io.to(to).emit('offer', data)
+  // })
+  // // Presenter から Receiver へ
+  // socket.on('answer', (data) => {
+  //   const to = data.to
+  //   console.log('(socket)[' + lib.showTime() + '] send answer to: ', to)
+  //   io.to(to).emit('answer', data)
+  // })
+
 
 })
 
