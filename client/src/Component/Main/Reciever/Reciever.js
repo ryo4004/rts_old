@@ -6,6 +6,7 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
+import { connectSocket } from '../../../Actions/Socket'
 
 import { getDate } from '../../../Library/Library'
 
@@ -16,9 +17,11 @@ function mapStateToProps(state) {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
+    socket: state.socket.socket,
+    selfid: state.socket.selfid,
+    otherid: state.socket.otherid,
+
     fileAPI: state.status.fileAPI,
-    socket: state.status.socket,
-    id: state.status.id,
     available: state.status.available
   }
 }
@@ -27,6 +30,9 @@ function mapDispatchToProps(dispatch) {
   return {
     prepare () {
       dispatch(prepare())
+    },
+    connectSocket (otherid) {
+      dispatch(connectSocket(otherid))
     }
   }
 }
@@ -34,11 +40,21 @@ function mapDispatchToProps(dispatch) {
 class Reciever extends Component {
   constructor (props) {
     super(props)
-    // this.props.loadList()
   }
 
   componentDidMount () {
     this.props.prepare()
+    const { params } = this.props.match
+    const otherid = params.otherid ? params.otherid : ''
+    this.props.connectSocket(otherid)
+    console.warn(this.props)
+
+    // 接続リクエストする
+    this.requestPeer()
+  }
+
+  requestPeer () {
+    
   }
 
   onDrop (accept, rejected) {
@@ -60,12 +76,10 @@ class Reciever extends Component {
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketid = this.props.socket ? this.props.socket.id : '-'
-    const id = this.props.id ? this.props.id : '-'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
-        <div>id: {socketid}</div>
-        <div>url: https://192.168.1.254/{id}</div>
+        <div>socketid: {socketid}</div>
       </div>
     )
   }
@@ -79,7 +93,7 @@ class Reciever extends Component {
 
     const prepare = this.renderPrepare()
     return (
-      <div className={'home' + mobileMode}>
+      <div className={'reciever' + mobileMode}>
         <header>
           <div>
             <h2><Link to='/'>RTS</Link></h2>

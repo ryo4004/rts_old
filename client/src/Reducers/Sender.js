@@ -1,21 +1,21 @@
 const initialState = {
   loading: false,
-  requestID: undefined
+  guestID: undefined
 }
 
-const prefix = 'RECIEVER_'
+const prefix = 'SENDER_'
 
-export default function recieverReducer (state = initialState, action) {
+export default function senderReducer (state = initialState, action) {
   switch (action.type) {
     case prefix + 'LOADING':
       return {
         ...state,
         loading: action.payload.loading
       }
-    case prefix + 'SET_REQUEST_ID':
+    case prefix + 'SET_GUEST_ID':
       return {
         ...state,
-        requestID: action.payload.requestID
+        guestID: action.payload.guestID
       }
     default:
       return state

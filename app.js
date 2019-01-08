@@ -77,12 +77,36 @@ app.post('/api/recorder', (req, res) => {
 // WebSocketサーバを使用
 const io = require('socket.io')(server)
 
+// 接続処理
 io.on('connection', (socket) => {
-  const id = lib.randomString()
-  // const sid = shortid.generate()
-  io.to(socket.client.id).emit('id', id)
-  
+  const id = lib.randomString()  
   console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
+  const reg = { status: 'connection', socketid: socket.client.id, id }
+  statusDB.insert(reg, (err, newdoc) => {
+    if (err) return console.log('database error')
+    // id を通知
+    io.to(socket.client.id).emit('connection_complete', { id })
+    console.log('(socket)[' + lib.showTime() + '] connect complete: ' + socket.client.id)
+  })
+
+  socket.on('request_id', (data) => {
+    console.log('(socket)[' + lib.showTime() + '] request_id: ', data)
+    
+    io.to(socket.client.id).emit('request_id', { id })
+  })
+
+  // 接続解除
+  socket.on('disconnecting', (reason) => {
+    console.log('(socket)[' + lib.showTime() + '] disconnecting: ', socket.client.id, reason)
+    statusDB.findOne({socketid: socket.client.id}, (err, status) => {
+      if (err) return console.log('database error: findOneエラー')
+      if (!status) return console.log(socket.client.id + ' not found')
+      statusDB.remove({socketid: socket.client.id}, {multi: false}, (err,numRemoved) => {
+        if (err || !numRemoved) return console.log('database error: removeエラー')
+        console.log('(socket)[' + lib.showTime() + '] disconnect complete: ' + socket.client.id)
+      })
+    })
+  })
 
   // socket.on('recorder_standby', (data) => {
   //   console.log('(socket)[' + lib.showTime() + '] recorder_standby: ', data)
@@ -135,19 +159,6 @@ io.on('connection', (socket) => {
     io.to(to).emit('find', data)
   })
 
-  // 切断時処理
-  socket.on('disconnecting', (reason) => {
-    console.log('(socket)[' + lib.showTime() + '] disconnecting: ', socket.client.id, reason)
-    // statusDB.findOne({id: socket.client.id}, (err, status) => {
-    //   if (err) return console.log('findOneエラー')
-    //   if (!status) return console.log(socket.client.id + ' is Receiver')
-    //   console.log(status.type)
-    //   statusDB.remove({id: socket.client.id}, {multi: false}, (err,numRemoved) => {
-    //     if (err || !numRemoved) return console.log('removeエラー')
-    //     console.log(socket.client.id + ' stanby終了')
-    //   })
-    // })
-  })
 })
 
 // app.use('/reg', express.static(client))

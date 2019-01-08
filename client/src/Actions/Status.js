@@ -1,12 +1,13 @@
 import { replace } from 'connected-react-router'
 import { divisionWidth } from '../Library/Library'
-import socketio from 'socket.io-client'
+// import { connectSocket } from './Socket'
 
-export const setLocation = (location) => {
-  return async (dispatch) => {
-    // dispatch(replace(location))
-  }
-}
+const prefix = 'STATUS_'
+
+const loading = (loading) => ({
+  type: prefix + 'LOADING',
+  payload: { loading }
+})
 
 export const windowWidthChange = () => {
   return (dispatch) => {
@@ -18,7 +19,7 @@ export const windowWidthChange = () => {
 }
 
 export const setWidth = (width, pc, mobile) => ({
-  type: 'STATUS_WINDOW_WIDTH',
+  type: prefix + 'WINDOW_WIDTH',
   payload: {
     width,
     pc,
@@ -37,42 +38,17 @@ export const prepare = () => {
     } else {
       dispatch(setFileAPI(false))
     }
-    // Socket接続
-    const socket = await socketio.connect('https://192.168.1.254:3000/', {secure: true})
-    // const socket = socketio.connect('https://cast.winds-n.com, {secure: true})
-    socket.on('connect', () => {
-      dispatch(setSocket(socket))
-      if (socket.connected && fileAPI) dispatch(setAvailable(true))
-      dispatch(loading(false))
-    })
-    socket.on('id', async (id) => {
-      console.warn('recieve',id)
-      dispatch(setID(id))
-    })
+    // if (socket.connected && fileAPI) dispatch(setAvailable(true))
+    dispatch(loading(false))
   }
 }
 
 const setFileAPI = (fileAPI) => ({
-  type: 'STATUS_SET_FILE_API',
+  type: prefix + 'SET_FILE_API',
   payload: { fileAPI }
 })
 
-const setSocket = (socket) => ({
-  type: 'STATUS_SET_SOCKET',
-  payload: { socket }
-})
-
-const setID = (id) => ({
-  type: 'STATUS_SET_ID',
-  payload: { id }
-})
-
 const setAvailable = (available) => ({
-  type: 'STATUS_SET_AVAILABLE',
+  type: prefix + 'SET_AVAILABLE',
   payload: { available }
-})
-
-export const loading = (loading) => ({
-  type: 'STATUS_LOADING',
-  payload: { loading }
 })

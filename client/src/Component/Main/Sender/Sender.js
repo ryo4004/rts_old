@@ -6,19 +6,20 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
+import { connectSocket } from '../../../Actions/Socket'
 
-import { getDate } from '../../../Library/Library'
-
-import './Home.css'
+import './Sender.css'
 
 function mapStateToProps(state) {
   return {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
+    socket: state.socket.socket,
+    selfid: state.socket.selfid,
+    otherid: state.socket.otherid,
+
     fileAPI: state.status.fileAPI,
-    socket: state.status.socket,
-    id: state.status.id,
     available: state.status.available
   }
 }
@@ -27,11 +28,14 @@ function mapDispatchToProps(dispatch) {
   return {
     prepare () {
       dispatch(prepare())
+    },
+    connectSocket () {
+      dispatch(connectSocket(false))
     }
   }
 }
 
-class Home extends Component {
+class Sender extends Component {
   constructor (props) {
     super(props)
     // this.props.loadList()
@@ -39,6 +43,7 @@ class Home extends Component {
 
   componentDidMount () {
     this.props.prepare()
+    this.props.connectSocket()
   }
 
   onDrop (accept, rejected) {
@@ -60,12 +65,12 @@ class Home extends Component {
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketid = this.props.socket ? this.props.socket.id : '-'
-    const id = this.props.id ? this.props.id : '-'
+    const selfid = this.props.selfid ? this.props.selfid : '-'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
-        <div>id: {socketid}</div>
-        <div>url: https://192.168.1.254/{id}</div>
+        <div>socketid: {socketid}</div>
+        <div>url: https://192.168.1.254/{selfid}</div>
       </div>
     )
   }
@@ -99,4 +104,4 @@ class Home extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Home)
+export default connect(mapStateToProps, mapDispatchToProps)(Sender)

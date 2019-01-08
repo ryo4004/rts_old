@@ -2,9 +2,9 @@ import React, { Component } from 'react'
 import { Route, Switch } from 'react-router-dom'
 
 import { connect } from 'react-redux'
-import { setLocation, windowWidthChange } from '../../Actions/Status'
+import { windowWidthChange } from '../../Actions/Status'
 
-import Home from './Home/Home'
+import Sender from './Sender/Sender'
 import Reciever from './Reciever/Reciever'
 
 function mapStateToProps(state) {
@@ -16,9 +16,6 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    setLocation (location) {
-      dispatch(setLocation(location))
-    },
     windowWidthChange () {
       dispatch(windowWidthChange())
     },
@@ -32,8 +29,6 @@ class Main extends Component {
   }
 
   componentWillMount () {
-    // 過去のlocation情報が存在する場合はそのページへRedirect
-    // this.props.setLocation(window.localStorage.location ? window.localStorage.location : false)
   }
 
   // Windowサイズの検出と記録
@@ -56,8 +51,8 @@ class Main extends Component {
     return (
       <div className={'contents' + mobileMode} ref={this.contents}>
         <Switch>
-          <Route path='/:id' component={Reciever} />
-          <Route path='/' component={Home} />
+          <Route path='/:otherid' component={Reciever} />
+          <Route path='/' component={Sender} />
         </Switch>
       </div>
     )
