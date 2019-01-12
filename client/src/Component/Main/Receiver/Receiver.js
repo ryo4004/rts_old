@@ -6,21 +6,25 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
-import { connectSocket } from '../../../Actions/Reciever'
+import { connectSocket } from '../../../Actions/Receiver'
 
-import './Reciever.css'
+import './Receiver.css'
 
 function mapStateToProps(state) {
   return {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
-    socket: state.reciever.socket,
-    selfID: state.reciever.selfID,
-    senderID: state.reciever.senderID,
+    socket: state.receiver.socket,
+    selfID: state.receiver.selfID,
+    senderID: state.receiver.senderID,
 
     fileAPI: state.status.fileAPI,
-    available: state.status.available
+    available: state.status.available,
+
+    receivedDataInfo: state.receiver.receivedDataInfo,
+    receivedDataCount: state.receiver.receivedDataCount,
+    receivedFileUrl: state.receiver.receivedFileUrl
   }
 }
 
@@ -35,7 +39,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class Reciever extends Component {
+class Receiver extends Component {
   constructor (props) {
     super(props)
   }
@@ -70,6 +74,12 @@ class Reciever extends Component {
     if (e.dataTransfer.files.length !== 1) return false
   }
 
+  update (e) {
+    e.preventDefault()
+    console.log('Render')
+    this.render()
+  }
+
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketID = this.props.socket ? this.props.socket.id : '-'
@@ -85,6 +95,24 @@ class Reciever extends Component {
     )
   }
 
+  renderReceivedInfo () {
+    if (!this.props.receivedDataInfo) return
+    return (
+      <div>
+        <span>{this.props.receivedDataCount}</span>/<span>{this.props.receivedDataInfo.size.sendTotal}</span>
+      </div>
+    )
+  }
+
+  renderReceivedFileDownload () {
+    if (!this.props.receivedFileUrl) return
+    return (
+      <div>
+        <a href={this.props.receivedFileUrl} download>Download</a>
+      </div>
+    )
+  }
+
   render () {
     // State List
     const { mobile, loading, fileAPI, socket } = this.props
@@ -93,8 +121,11 @@ class Reciever extends Component {
     const mobileMode = mobile ? ' mobile' : ' pc'
 
     const prepare = this.renderPrepare()
+    const receivedInfo = this.renderReceivedInfo()
+    const receivedFileDownload = this.renderReceivedFileDownload()
+    
     return (
-      <div className={'reciever' + mobileMode}>
+      <div className={'receiver' + mobileMode}>
         <header>
           <div>
             <h2><Link to='/'>RTS</Link></h2>
@@ -102,16 +133,18 @@ class Reciever extends Component {
         </header>
         <div className='status'>
           {prepare}
+          {receivedInfo}
           <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
             <label className='file'>ファイルを準備
               <input type='file' className='file' />
             </label>
           </div>
-          {/* <button className='standby'></button> */}
+          <button onClick={(e) => this.update(e)}>Render</button>
+          {receivedFileDownload}
         </div>
       </div>
     )
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Reciever)
+export default connect(mapStateToProps, mapDispatchToProps)(Receiver)

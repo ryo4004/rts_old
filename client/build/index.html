@@ -31,6 +31,9 @@
     window.addEventListener('load', () => {
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then((registration) => {}).catch((err) => {})
     })
+    
+    // window.requestFileSystem(type, size, successCallback, opt_errorCallback)
+    // window.webkitRequestFileSystem(window.TEMPORARY, 5*1024*1024, (fs) => { console.log('Opened file system: ', fs.name, fs) }, (error) => { console.error(error) })
 
     window.addEventListener('unhandledrejection', reason => {
       // document.getElementById('error').innerHTML(reason)

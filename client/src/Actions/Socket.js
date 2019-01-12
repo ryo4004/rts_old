@@ -26,7 +26,7 @@
 //       dispatch(loading(false))
 //     })
 //     socket.on('connection_complete', async (obj) => {
-//       console.warn('id recieve', obj)
+//       console.warn('id receive', obj)
 //       dispatch(setSelfID(obj.id))
 //     })
 //   }

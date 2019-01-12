@@ -6,7 +6,7 @@ import { connect } from 'react-redux'
 // import { loadList } from '../../../Actions/Reader'
 
 import { prepare } from '../../../Actions/Status'
-import { connectSocket, sendData } from '../../../Actions/Sender'
+import { setFileList, connectSocket, sendData, sendFile } from '../../../Actions/Sender'
 
 import './Sender.css'
 
@@ -15,25 +15,33 @@ function mapStateToProps(state) {
     loading: state.status.loading,
     mobile: state.status.mobile,
 
+    fileList: state.sender.fileList,
+
     socket: state.sender.socket,
     selfID: state.sender.selfID,
-    recieverID: state.sender.recieverID,
+    receiverID: state.sender.receiverID,
 
     fileAPI: state.status.fileAPI,
-    available: state.status.available
+    available: state.status.available,
+
+    sentDataInfo: state.sender.sentDataInfo,
+    sentDataCount: state.sender.sentDataCount,
   }
 }
 
 function mapDispatchToProps(dispatch) {
   return {
-    prepare () {
-      dispatch(prepare())
+    setFileList (fileList) {
+      dispatch(setFileList(fileList))
     },
     connectSocket () {
       dispatch(connectSocket(false))
     },
     sendData () {
       dispatch(sendData())
+    },
+    sendFile () {
+      dispatch(sendFile())
     }
   }
 }
@@ -45,7 +53,6 @@ class Sender extends Component {
   }
 
   componentDidMount () {
-    this.props.prepare()
     this.props.connectSocket()
   }
 
@@ -63,20 +70,40 @@ class Sender extends Component {
     console.log(e)
     console.log(e.dataTransfer.files)
     if (e.dataTransfer.files.length !== 1) return false
+    this.props.setFileList(e.dataTransfer.files)
+  }
+
+  fileSelect (e) {
+    console.warn(e.target.files)
+    this.props.setFileList(e.target.files)
   }
 
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketID = this.props.socket ? this.props.socket.id : '-'
     const selfID = this.props.selfID ? this.props.selfID : '-'
-    const recieverID = this.props.recieverID ? this.props.recieverID : '-'
+    const receiverID = this.props.receiverID ? this.props.receiverID : '-'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
         <div>socketID: {socketID}</div>
         <div>selfID: {selfID}</div>
-        <div>recieverID: {recieverID}</div>
+        <div>receiverID: {receiverID}</div>
         <div>url: <a href={'https://192.168.1.254:3000/' + selfID} target='_blank'>https://192.168.1.254:3000/{selfID}</a></div>
+      </div>
+    )
+  }
+
+  renderFileList () {
+    if (!this.props.fileList) return false
+    return <div>SET</div>
+  }
+
+  renderSentInfo () {
+    if (!this.props.sentDataInfo) return
+    return (
+      <div>
+        <span>{this.props.sentDataCount}</span>/<span>{this.props.sentDataInfo.size.sendTotal}</span>
       </div>
     )
   }
@@ -89,6 +116,9 @@ class Sender extends Component {
     const mobileMode = mobile ? ' mobile' : ' pc'
 
     const prepare = this.renderPrepare()
+    const fileList = this.renderFileList()
+    const sentInfo = this.renderSentInfo()
+
     return (
       <div className={'home' + mobileMode}>
         <header>
@@ -100,9 +130,12 @@ class Sender extends Component {
           {prepare}
           <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
             <label className='file'>ファイルを準備
-              <input type='file' className='file' />
+              <input type='file' className='file' onChange={(e) => this.fileSelect(e)} />
             </label>
-            <button onClick={() => this.props.sendData()}>送信</button>
+            {fileList}
+            {sentInfo}
+            <button className='test' onClick={() => this.props.sendData()}>送信</button>
+            <button className='test' onClick={() => this.props.sendFile()}>ファイル送信</button>
           </div>
           {/* <button className='standby'></button> */}
         </div>

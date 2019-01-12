@@ -108,7 +108,7 @@ io.on('connection', (socket) => {
     console.log('(socket)[' + lib.showTime() + '] connect complete: ' + socket.client.id, id)
   })
 
-  // First request from Reciever to Sender
+  // First request from Receiver to Sender
   // socket.on('request_to_sender', (obj) => {
   //   console.log('(socket)[' + lib.showTime() + '] request_to_sender: ', obj)
   //   getSocketID(obj.from, (err, fromSocket) => {
@@ -120,9 +120,9 @@ io.on('connection', (socket) => {
   //   })
   // })
 
-  // First request from Reciever to Sender
+  // First request from Receiver to Sender
   socket.on('request_to_sender', async (obj) => {
-    console.log('(socket)[' + lib.showTime() + '] request_to_sender: ', obj)
+    console.log('(socket)[' + lib.showTime() + '] request_to_sender',)
     // const fromSocket = await getSocketID(obj.from)
     const toSocket = await getSocketID(obj.to)
     // console.log('from: ', fromSocket)
@@ -130,16 +130,16 @@ io.on('connection', (socket) => {
     io.to(toSocket).emit('request_to_sender', obj)
   })
 
-  // Reciever send offer
+  // Reciever send offer SDP
   socket.on('send_offer_sdp', async (obj) => {
-    console.log('(socket)[' + lib.showTime() + '] send_offer_sdp: ', obj)
+    console.log('(socket)[' + lib.showTime() + '] send_offer_sdp')
     const toSocket = await getSocketID(obj.to)
     io.to(toSocket).emit('send_offer_sdp', obj)
   })
   
-  // Sender send answer
+  // Sender send answer SDP
   socket.on('send_answer_sdp', async (obj) => {
-    console.log('(socket)[' + lib.showTime() + '] send_answer_sdp: ', obj)
+    console.log('(socket)[' + lib.showTime() + '] send_answer_sdp')
     const toSocket = await getSocketID(obj.to)
     io.to(toSocket).emit('send_answer_sdp', obj)
   })
@@ -147,7 +147,8 @@ io.on('connection', (socket) => {
   // お互いに交換
   socket.on('send_found_candidate', async (obj) => {
     const toSocket = await getSocketID(obj.to)
-    console.log('(socket)[' + lib.showTime() + '] find: from ' + obj.from + ' to ' +  obj.to)
+    console.log('(socket)[' + lib.showTime() + '] find: from ' + obj.selfType + ' to ' +  obj.to)
+    // console.log(JSON.stringify(obj.candidate, null, 2))
     io.to(toSocket).emit('send_found_candidate', obj)
   })
 

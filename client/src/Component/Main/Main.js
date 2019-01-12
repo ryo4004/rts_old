@@ -5,7 +5,7 @@ import { connect } from 'react-redux'
 import { windowWidthChange } from '../../Actions/Status'
 
 import Sender from './Sender/Sender'
-import Reciever from './Reciever/Reciever'
+import Receiver from './Receiver/Receiver'
 
 function mapStateToProps(state) {
   return {
@@ -51,7 +51,7 @@ class Main extends Component {
     return (
       <div className={'contents' + mobileMode} ref={this.contents}>
         <Switch>
-          <Route path='/:senderID' component={Reciever} />
+          <Route path='/:senderID' component={Receiver} />
           <Route path='/' component={Sender} />
         </Switch>
       </div>

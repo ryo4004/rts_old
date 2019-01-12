@@ -2,12 +2,21 @@ import socketio from 'socket.io-client'
 
 const prefix = 'SENDER_'
 
-let pc
-let dc
+let peerConnection
+let dataChannel
+
+let chunkSize = 1024 * 16 - 1
+let start = 0
+let sentDataCount = 0
 
 const loading = (loading) => ({
   type: prefix + 'LOADING',
   payload: { loading }
+})
+
+export const setFileList = (fileList) => ({
+  type: prefix + 'SET_FILELIST',
+  payload: { fileList }
 })
 
 export const connectSocket = () => {
@@ -24,30 +33,36 @@ export const connectSocket = () => {
       dispatch(loading(false))
       dispatch(setSelfID(obj.id))
     })
-    // 受信 Reciever情報を取得
+    // 受信 Receiver情報を取得
     socket.on('request_to_sender', (obj) => {
-      console.warn('Reciever id', obj)
-      dispatch(setRecieverID(obj.from))
+      console.warn('Receiver id', obj)
+      dispatch(setReceiverID(obj.from))
     })
     // 受信
     socket.on('send_offer_sdp', async (obj) => {
       console.warn('OfferSdp', obj)
 
       // PeerConnection作成
-      pc = new RTCPeerConnection({
+      peerConnection = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302'}],
         iceTransportPolicy: 'all'
       })
-      pc.ondatachannel = (event) => {
-        dc = event.channel
-        dc.onopen = () => { console.warn('DataChannel使用可能') }
-        dc.onmessage = (event) => { console.log('DataChannel受信', event) }
+      peerConnection.ondatachannel = (event) => {
+        dataChannel = event.channel
+        dataChannel.onopen = () => {
+          dispatch(dataChannelOpenStatus(true))
+          console.warn('DataChannel Standby')
+        }
+        dataChannel.onmessage = (event) => { console.log('DataChannel受信', event) }
       }
-      pc.onicecandidate = (event) => {
-        console.warn('経路発見')
+      peerConnection.oniceconnectionstatechange = (event) => { console.log('oniceconnectionstatechange', event) }
+      peerConnection.onicegatheringstatechange = (event) => { console.log('onicegatheringstatechange', event) }
+      peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
+          console.warn('経路発見')
           getState().sender.socket.emit('send_found_candidate', {
-            to: getState().sender.recieverID,
+            selfType: 'Sender',
+            to: getState().sender.receiverID,
             from: getState().sender.selfID,
             candidate: event.candidate
           })
@@ -55,18 +70,18 @@ export const connectSocket = () => {
           // event.candidateが空の場合は終了
         }
       }
-      await pc.setRemoteDescription(new RTCSessionDescription(obj.sdp))
-      let answerSdp = await pc.createAnswer()
-      await pc.setLocalDescription(answerSdp)
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(obj.sdp))
+      let answerSdp = await peerConnection.createAnswer()
+      await peerConnection.setLocalDescription(answerSdp)
       socket.emit('send_answer_sdp', {
-        to: getState().sender.recieverID,
+        to: getState().sender.receiverID,
         type: 'answer',
         sdp: answerSdp
       })
     })
     socket.on('send_found_candidate', async (obj) => {
       console.warn('経路受信')
-      await pc.addIceCandidate(new RTCIceCandidate(obj.candidate))
+      await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
   }
 }
@@ -81,14 +96,96 @@ const setSelfID = (selfID) => ({
   payload: { selfID }
 })
 
-const setRecieverID = (recieverID) => ({
-  type: prefix + 'SET_RECIEVER_ID',
-  payload: { recieverID }
+const setReceiverID = (receiverID) => ({
+  type: prefix + 'SET_RECEIVER_ID',
+  payload: { receiverID }
+})
+
+const dataChannelOpenStatus = (dataChannelOpenStatus) => ({
+  type: prefix + 'DATACHANNEL_OPEN_STATUS',
+  payload: dataChannelOpenStatus
 })
 
 export const sendData = () => {
   return async () => {
     console.log('DataChannel送信')
-    dc.send('文字列')
+    dataChannel.send('文字列')
   }
 }
+
+export const sendFile = () => {
+  return async (dispatch, getState) => {
+    console.log('sendFile')
+    let fileReader = new FileReader()
+    fileReader.onloadstart = (event) => { console.log('fileReader onloadstart', event) }
+    fileReader.onabort = (event) => { console.log('fileReader onabort', event) }
+    fileReader.onerror = (event) => { console.log('fileReader onerror', event) }
+    fileReader.onloadend = (event) => { console.log('fileReader onloadend', event) }
+    fileReader.onprogress = (event) => { console.log('fileReader onprogress', event.loaded + '/' + event.total) }
+    fileReader.onload = (event) => {
+      console.warn('DataChannelファイル送信開始', getState().sender.fileList[0])
+      let data = new Uint8Array(event.target.result)
+      console.log('バイト数: ' + data.byteLength, '送信回数: ' + Math.ceil(data.byteLength / chunkSize), '余り: ' + (data.byteLength % chunkSize))
+      const sendInfo = {
+        size: {
+          total: data.byteLength,
+          sendTotal: Math.ceil(data.byteLength / chunkSize),
+          lastSize: data.byteLength % chunkSize,
+        },
+        file: {
+          lastModified: getState().sender.fileList[0].lastModified,
+          name: getState().sender.fileList[0].name,
+          size: getState().sender.fileList[0].size,
+          type: getState().sender.fileList[0].type,
+          webkitRelativePath: getState().sender.fileList[0].webkitRelativePath
+        }
+      }
+      dispatch(setSentDataInfo(sendInfo))
+      dataChannel.send(JSON.stringify(sendInfo))
+      console.warn('label', dataChannel.label)
+      console.warn('ordered', dataChannel.ordered)
+      console.warn('protocol', dataChannel.protocol)
+      console.warn('id', dataChannel.id)
+      console.warn('readyState', dataChannel.readyState)
+      console.warn('bufferedAmount', dataChannel.bufferedAmount)
+      console.warn('binaryType', dataChannel.binaryType)
+      console.warn('maxPacketLifeType', dataChannel.maxPacketLifeType)
+      console.warn('maxRetransmits', dataChannel.maxRetransmits)
+      console.warn('negotiated', dataChannel.negotiated)
+      console.warn('reliable', dataChannel.reliable)
+      console.warn('stream', dataChannel.stream)
+      while (start < data.byteLength) {
+        if (dataChannel.bufferedAmount === 0) {
+        // if (dataChannel.bufferedAmount < 16700000) {
+          let end = start + chunkSize
+          let chunkData = data.slice(start, end)
+          let chunk = new Uint8Array(chunkData.byteLength + 1)
+          chunk[0] = (end >= data.byteLength ? 1 : 0 )
+          chunk.set(new Uint8Array(chunkData), 1)
+          console.log('DataChannelファイル送信中', dataChannel.bufferedAmount)
+          // console.log('DataChannelファイル送信')
+          dataChannel.send(chunk)
+          start = end
+          // dispatch(setSentDataCount(++sentDataCount))
+        } // else {
+        //   console.log('DataChannelファイル送信待機中', dataChannel.bufferedAmount)
+        // }
+      }
+      console.log('DataChannelファイル送信完了')
+      // 送信処理リセット
+      start = 0
+      sentDataCount = 0
+    }
+    fileReader.readAsArrayBuffer(getState().sender.fileList[0])
+  }
+}
+
+const setSentDataInfo = (sentDataInfo) => ({
+  type: prefix + 'SET_SENT_DATA_INFO',
+  payload: { sentDataInfo }
+})
+
+const setSentDataCount = (sentDataCount) => ({
+  type: prefix + 'SET_SENT_DATA_COUNT',
+  payload: { sentDataCount }
+})

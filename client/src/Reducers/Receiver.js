@@ -1,27 +1,22 @@
 const initialState = {
   loading: false,
-  fileList: undefined,
   socket: undefined,
   selfID: undefined,
-  receiverID: undefined,
+  senderID: undefined,
   dataChannelOpenStatus: false,
-  sentDataInfo: undefined,
-  sentDataCount: 0,
+  receivedDataInfo: undefined,
+  receivedDataCount: 0,
+  receivedFileUrl: undefined,
 }
 
-const prefix = 'SENDER_'
+const prefix = 'RECEIVER_'
 
-export default function senderReducer (state = initialState, action) {
+export default function receiverReducer (state = initialState, action) {
   switch (action.type) {
     case prefix + 'LOADING':
       return {
         ...state,
         loading: action.payload.loading
-      }
-    case prefix + 'SET_FILELIST':
-      return {
-        ...state,
-        fileList: action.payload.fileList
       }
     case prefix + 'SET_SOCKET':
       return {
@@ -33,25 +28,30 @@ export default function senderReducer (state = initialState, action) {
         ...state,
         selfID: action.payload.selfID
       }
-    case prefix + 'SET_RECEIVER_ID':
+    case prefix + 'SET_SENDER_ID':
       return {
         ...state,
-        receiverID: action.payload.receiverID
+        senderID: action.payload.senderID
       }
     case prefix + 'DATACHANNEL_OPEN_STATUS':
       return {
         ...state,
         dataChannelOpenStatus: action.payload.dataChannelOpenStatus
       }
-    case prefix + 'SET_SENT_DATA_INFO':
+    case prefix + 'SET_RECEIVED_DATA_INFO':
       return {
         ...state,
-        sentDataInfo: action.payload.sentDataInfo
+        receivedDataInfo: action.payload.receivedDataInfo
       }
-    case prefix + 'SET_SENT_DATA_COUNT':
+    case prefix + 'SET_RECEIVED_DATA_COUNT':
       return {
         ...state,
-        sentDataCount: action.payload.sentDataCount
+        receivedDataCount: action.payload.receivedDataCount
+      }
+    case prefix + 'SET_RECEIVED_FILE_URL':
+      return {
+        ...state,
+        receivedFileUrl: action.payload.receivedFileUrl
       }
     default:
       return state

@@ -85,6 +85,12 @@
       cursor: pointer;
     }
 
+    button.test {
+      display: block;
+      padding: 2px 8px;
+      margin: 2em auto;
+    }
+
     button.standby {
       background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
     }

@@ -4,7 +4,7 @@ import { connectRouter } from 'connected-react-router'
 import statusReducer from '../Reducers/Status'
 // import socketReducer from '../Reducers/Socket'
 import senderReducer from '../Reducers/Sender'
-import recieverReducer from '../Reducers/Reciever'
+import receiverReducer from '../Reducers/Receiver'
 // import toastReducer from '../Reducers/Toast'
 
 // historyはsrc/App.jsから渡す
@@ -13,7 +13,7 @@ export default function createRootReducer(history) {
     status: statusReducer,
     // socket: socketReducer,
     sender: senderReducer,
-    reciever: recieverReducer,
+    receiver: receiverReducer,
     // toast: toastReducer,
 
     // connected-react-routerのReducer
