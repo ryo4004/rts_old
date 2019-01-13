@@ -126,6 +126,7 @@ export const sendFile = () => {
       console.warn('DataChannelファイル送信開始', getState().sender.fileList[0])
       let data = new Uint8Array(event.target.result)
       console.log('バイト数: ' + data.byteLength, '送信回数: ' + Math.ceil(data.byteLength / chunkSize), '余り: ' + (data.byteLength % chunkSize))
+      console.warn('sendData', data)
       const sendInfo = {
         size: {
           total: data.byteLength,
@@ -140,6 +141,18 @@ export const sendFile = () => {
           webkitRelativePath: getState().sender.fileList[0].webkitRelativePath
         }
       }
+      
+      // console.warn('blob', data)
+      // const fileBlob = new Blob(data, {type: sendInfo.file.type})
+      // console.warn('fileBlob', fileBlob)
+
+      // console.warn('file')
+      // let file = new File(data, sendInfo.file.name)//, {
+      // //   type: sendInfo.file.type,
+      // //   lastModified: sendInfo.file.lastModified
+      // // })
+      // console.warn('file', file)
+
       dispatch(setSentDataInfo(sendInfo))
       dataChannel.send(JSON.stringify(sendInfo))
       console.warn('label', dataChannel.label)
@@ -154,23 +167,51 @@ export const sendFile = () => {
       console.warn('negotiated', dataChannel.negotiated)
       console.warn('reliable', dataChannel.reliable)
       console.warn('stream', dataChannel.stream)
-      while (start < data.byteLength) {
-        if (dataChannel.bufferedAmount === 0) {
-        // if (dataChannel.bufferedAmount < 16700000) {
+
+      const userAgent = window.navigator.userAgent.toLowerCase()
+      if(userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
+        // Internet Explorer
+      } else if(userAgent.indexOf('edge') != -1) {
+        // Edge
+      } else if(userAgent.indexOf('chrome') != -1) {
+        // Google Chrome
+        while (start < data.byteLength) {
+          if (dataChannel.bufferedAmount === 0) {
+          // if (dataChannel.bufferedAmount < 10000000) {
+            let end = start + chunkSize
+            let chunkData = data.slice(start, end)
+            let chunk = new Uint8Array(chunkData.byteLength + 1)
+            chunk[0] = (end >= data.byteLength ? 1 : 0 )
+            chunk.set(new Uint8Array(chunkData), 1)
+            console.log('Chrome DataChannelファイル送信中', dataChannel.bufferedAmount)
+            // console.log('DataChannelファイル送信')
+            dataChannel.send(chunk)
+            start = end
+            // dispatch(setSentDataCount(++sentDataCount))
+          }
+        }
+      } else if(userAgent.indexOf('safari') != -1) {
+        // Safari
+      } else if(userAgent.indexOf('firefox') != -1) {
+        // FireFox
+        while (start < data.byteLength) {
           let end = start + chunkSize
           let chunkData = data.slice(start, end)
           let chunk = new Uint8Array(chunkData.byteLength + 1)
           chunk[0] = (end >= data.byteLength ? 1 : 0 )
           chunk.set(new Uint8Array(chunkData), 1)
-          console.log('DataChannelファイル送信中', dataChannel.bufferedAmount)
+          console.log('Firefox DataChannelファイル送信中')
           // console.log('DataChannelファイル送信')
           dataChannel.send(chunk)
           start = end
           // dispatch(setSentDataCount(++sentDataCount))
-        } // else {
-        //   console.log('DataChannelファイル送信待機中', dataChannel.bufferedAmount)
-        // }
+        }
+      } else if(userAgent.indexOf('opera') != -1) {
+        // Opera
+      } else {
+        // undefined
       }
+
       console.log('DataChannelファイル送信完了')
       // 送信処理リセット
       start = 0
