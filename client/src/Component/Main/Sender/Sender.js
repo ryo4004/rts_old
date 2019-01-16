@@ -3,10 +3,9 @@ import { Link } from 'react-router-dom'
 
 import { connect } from 'react-redux'
 
-// import { loadList } from '../../../Actions/Reader'
+import { addFile, connectSocket, sendData, sendFile } from '../../../Actions/Sender'
 
-import { prepare } from '../../../Actions/Status'
-import { setFileList, connectSocket, sendData, sendFile } from '../../../Actions/Sender'
+import { fileSizeUnit } from '../../../Library/Library'
 
 import './Sender.css'
 
@@ -16,10 +15,14 @@ function mapStateToProps(state) {
     mobile: state.status.mobile,
 
     fileList: state.sender.fileList,
+    sendFileList: state.sender.sendFileList,
+    sendFileStorage: state.sender.sendFileStorage,
 
     socket: state.sender.socket,
     selfID: state.sender.selfID,
     receiverID: state.sender.receiverID,
+
+    dataChannelOpenStatus: state.sender.dataChannelOpenStatus,
 
     fileAPI: state.status.fileAPI,
     available: state.status.available,
@@ -31,8 +34,8 @@ function mapStateToProps(state) {
 
 function mapDispatchToProps(dispatch) {
   return {
-    setFileList (fileList) {
-      dispatch(setFileList(fileList))
+    addFile (fileList) {
+      dispatch(addFile(fileList))
     },
     connectSocket () {
       dispatch(connectSocket(false))
@@ -49,7 +52,6 @@ function mapDispatchToProps(dispatch) {
 class Sender extends Component {
   constructor (props) {
     super(props)
-    // this.props.loadList()
   }
 
   componentDidMount () {
@@ -70,12 +72,12 @@ class Sender extends Component {
     console.log(e)
     console.log(e.dataTransfer.files)
     if (e.dataTransfer.files.length !== 1) return false
-    this.props.setFileList(e.dataTransfer.files)
+    this.props.addFile('onDrop', e.dataTransfer.files)
   }
 
   fileSelect (e) {
-    console.warn(e.target.files)
-    this.props.setFileList(e.target.files)
+    console.warn('fileSelect', e.target.files)
+    this.props.addFile(e.target.files)
   }
 
   renderPrepare () {
@@ -83,6 +85,7 @@ class Sender extends Component {
     const socketID = this.props.socket ? this.props.socket.id : '-'
     const selfID = this.props.selfID ? this.props.selfID : '-'
     const receiverID = this.props.receiverID ? this.props.receiverID : '-'
+    const dataChannel = this.props.dataChannelOpenStatus ? 'OK' : 'NG'
     return (
       <div className='prepare'>
         <div>status: {available}</div>
@@ -90,13 +93,22 @@ class Sender extends Component {
         <div>selfID: {selfID}</div>
         <div>receiverID: {receiverID}</div>
         <div>url: <a href={'https://192.168.1.254:3000/' + selfID} target='_blank'>https://192.168.1.254:3000/{selfID}</a></div>
+        <div>dataChannel: {dataChannel}</div>
       </div>
     )
   }
 
   renderFileList () {
-    if (!this.props.fileList) return false
-    return <div>SET</div>
+    // console.warn('sendDataList',this.props.sendFileList)
+    if (!this.props.sendFileList || Object.keys(this.props.sendFileList).length === 0) return <div>追加してください</div>
+    const sendFileList = Object.keys(this.props.sendFileList).map((id, i) => {
+      const each = this.props.sendFileList[id]
+      // console.warn('render',each)
+      const load = each.load === 100 ? 'loaded' : each.load + '%'
+      const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
+      return <li key={'filelist-' + i}><div>{each.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.size)})</div></li>
+    })
+    return <div><ul>{sendFileList}</ul></div>
   }
 
   renderSentInfo () {
@@ -109,6 +121,7 @@ class Sender extends Component {
   }
 
   render () {
+    // console.log('render')
     // State List
     const { mobile, loading, fileAPI, socket } = this.props
     // Dispatch List
@@ -129,8 +142,8 @@ class Sender extends Component {
         <div className='status'>
           {prepare}
           <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
-            <label className='file'>ファイルを準備
-              <input type='file' className='file' onChange={(e) => this.fileSelect(e)} />
+            <label className='file'>共有するファイルを追加
+              <input type='file' className='file' onChange={(e) => this.fileSelect(e)} multiple />
             </label>
             {fileList}
             {sentInfo}

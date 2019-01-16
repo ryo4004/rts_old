@@ -4,8 +4,16 @@ const initialState = {
   selfID: undefined,
   senderID: undefined,
   dataChannelOpenStatus: false,
-  receivedDataInfo: undefined,
-  receivedDataCount: 0,
+
+  // 追加されたファイルと状態の管理
+  receiveFileList: {},
+  // ファイル実置き場
+  receiveFileStorage: {},
+
+  // 受信処理中のファイル情報
+  receiveFileInfo: undefined,
+  receivePacketCount: 0,
+  receiveFileUrlList: {},
   receivedFileUrl: undefined,
 }
 
@@ -38,15 +46,30 @@ export default function receiverReducer (state = initialState, action) {
         ...state,
         dataChannelOpenStatus: action.payload.dataChannelOpenStatus
       }
-    case prefix + 'SET_RECEIVED_DATA_INFO':
+    case prefix + 'SET_RECEIVE_FILE_LIST':
       return {
         ...state,
-        receivedDataInfo: action.payload.receivedDataInfo
+        receiveFileList: action.payload.receiveFileList
       }
-    case prefix + 'SET_RECEIVED_DATA_COUNT':
+    case prefix + 'SET_RECEIVE_FILE_STORAGE':
       return {
         ...state,
-        receivedDataCount: action.payload.receivedDataCount
+        receiveFileStorage: action.payload.receiveFileStorage
+      }
+    case prefix + 'SET_RECEIVE_FILE_INFO':
+      return {
+        ...state,
+        receiveFileInfo: action.payload.receiveFileInfo
+      }
+    case prefix + 'SET_RECEIVE_PACKET_COUNT':
+      return {
+        ...state,
+        receivePacketCount: action.payload.receivePacketCount
+      }
+    case prefix + 'SET_RECEIVE_FILE_URL_LIST':
+      return {
+        ...state,
+        receiveFileUrlList: action.payload.receiveFileUrlList
       }
     case prefix + 'SET_RECEIVED_FILE_URL':
       return {

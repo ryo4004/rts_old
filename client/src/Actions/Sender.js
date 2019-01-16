@@ -5,18 +5,133 @@ const prefix = 'SENDER_'
 let peerConnection
 let dataChannel
 
-let chunkSize = 1024 * 16 - 1
+let packetSize = 1024 * 16 - 1
 let start = 0
-let sentDataCount = 0
+let sendPacketCount = 0
 
 const loading = (loading) => ({
   type: prefix + 'LOADING',
   payload: { loading }
 })
 
-export const setFileList = (fileList) => ({
+function randomString () {
+  const character = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let id = ''
+  for (var i=0; i<8; i++) { id += character[Math.floor(Math.random()*character.length)] }
+  return (new Date().getTime()) + id
+}
+
+function updateSendFileList (property, value, id, dispatch, getState) {
+  // JSON.parse(JSON.stringify())は使わない
+  const sendFileList = {}
+  Object.assign(sendFileList, getState().sender.sendFileList)
+  sendFileList[id][property] = value
+  dispatch(setSendFileList(sendFileList))
+}
+
+function openFile (id, file, dispatch, getState) {
+  let fileReader = new FileReader()
+  fileReader.onloadstart = (event) => {
+    updateSendFileList('load', 0, id, dispatch, getState)
+  }
+  // fileReader.onabort = (event) => { console.log('fileReader onabort', event) }
+  // fileReader.onerror = (event) => { console.log('fileReader onerror', event) }
+  fileReader.onloadend = (event) => {
+    updateSendFileList('load', 100, id, dispatch, getState)
+  }
+  fileReader.onprogress = (event) => {
+    const percent = Math.ceil(event.loaded / event.total * 1000.0) / 10.0
+    updateSendFileList('load', percent, id, dispatch, getState)
+  }
+  fileReader.onload = (event) => {
+    let data = new Uint8Array(event.target.result)
+    updateSendFileList('byteLength', data.byteLength, id, dispatch, getState)
+    updateSendFileList('sendTime', Math.ceil(data.byteLength / packetSize), id, dispatch, getState)
+    updateSendFileList('rest', data.byteLength % packetSize, id, dispatch, getState)
+    let sendFileStorage = {}
+    Object.assign(sendFileStorage, getState().sender.sendFileStorage)
+    sendFileStorage[id] = data
+    dispatch(setSendFileStorage(sendFileStorage))
+  }
+  fileReader.readAsArrayBuffer(file)
+}
+
+export const addFile = (fileList) => {
+  return async (dispatch, getState) => {
+    dispatch(setFileList(fileList))
+    Object.keys(fileList).forEach((num) => {
+      // ファイルごとにid生成
+      const id = randomString()
+      // sendFileListに追加する
+      let sendFileList = {
+        [id]: {
+          id: id,
+          timestamp: (new Date()).getTime(),
+
+          // Sender用プロパティ(変更不可)
+          // 読み込み状態
+          load: false,
+          // receiverへfileInfo送信フラグ
+          preSendInfo: false,
+          // ファイル送信フラグ
+          send: false,
+
+          // Receiver用プロパティ(変更不可)
+          // receive: false, (ファイルリスト送信時に追加する)
+          
+          // ファイルサイズ情報
+          byteLength: undefined,
+          sendTime: undefined,
+          rest: undefined,
+
+          // ファイル情報
+          lastModified: fileList[num].lastModified,
+          name: fileList[num].name,
+          size: fileList[num].size,
+          type: fileList[num].type,
+          webkitRelativePath: fileList[num].webkitRelativePath,
+
+          // file object(これいらないのでは この後参照しているのか確認する)
+          // file: fileList[num]
+        }
+      }
+      Object.assign(sendFileList, getState().sender.sendFileList)
+      dispatch(setSendFileList(sendFileList))
+      openFile(id, fileList[num], dispatch, getState)
+
+      // dataChannelが開いていたらファイルリスト情報を送信する
+      if (getState().sender.dataChannelOpenStatus) {
+        const sendFileInfo = {
+          add: {
+            [id]: Object.assign({}, sendFileList[id])
+          }
+        }
+        // Receiverに不要な情報を削除
+        delete sendFileInfo.add[id].load
+        delete sendFileInfo.add[id].preSendInfo
+        delete sendFileInfo.add[id].send
+        sendFileInfo.add[id].receive = false
+        console.warn('preSendInfo', sendFileInfo, sendFileList[id])
+        dataChannel.send(JSON.stringify(sendFileInfo))
+        updateSendFileList('preSendInfo', true, id, dispatch, getState)
+      }
+    })
+  }
+}
+
+const setFileList = (fileList) => ({
   type: prefix + 'SET_FILELIST',
   payload: { fileList }
+})
+
+const setSendFileList = (sendFileList) => ({
+  type: prefix + 'SET_SEND_FILE_LIST',
+  payload: { sendFileList }
+})
+
+const setSendFileStorage = (sendFileStorage) => ({
+  type: prefix + 'SET_SEND_FILE_STORAGE',
+  payload: { sendFileStorage }
 })
 
 export const connectSocket = () => {
@@ -103,130 +218,184 @@ const setReceiverID = (receiverID) => ({
 
 const dataChannelOpenStatus = (dataChannelOpenStatus) => ({
   type: prefix + 'DATACHANNEL_OPEN_STATUS',
-  payload: dataChannelOpenStatus
+  payload: { dataChannelOpenStatus }
 })
 
 export const sendData = () => {
-  return async () => {
+  return async (dispatch, getState) => {
     console.log('DataChannel送信')
-    dataChannel.send('文字列')
+    if (!getState().sender.dataChannelOpenStatus) return console.error('Data Channel not open')
+    const sendFileList = Object.assign(getState().sender.sendFileList)
+    if (Object.keys(sendFileList).length === 0) return console.error('Send file not found')
+
+    // const sendFileInfo = Object.assign({}, getState().sender.sendFileList)
+
+    // const sendFileListInfo = Object.keys(sendFileInfo).map((id, i) => {
+    //   const each = sendFileList[id]
+    //   return {id: each.id, send: each.send, name: each.name, size: each.size}
+    // })
+
+    // 未送信ファイルのidのみのリストを作成
+    const sendList = Object.keys(sendFileList).filter((id) => {
+      const file = sendFileList[id]
+      if (file.send || file.load !== 100) return false
+      return id
+    })
+    sendList.reverse().forEach((id) => {
+      sendFileData(id, dispatch, getState)
+    })
   }
+}
+
+function sendFileData (id, dispatch, getState) {
+  console.log('データ送信処理開始', id)
+  const file = getState().sender.sendFileList[id]
+  const data = getState().sender.sendFileStorage[id]
+  const sendInfo = {
+    sendFileInfo: {
+      id: id,
+      size: {
+        byteLength: file.byteLength,
+        sendTime: file.sendTime,
+        rest: file.rest
+      },
+      file: {
+        lastModified: file.lastModified,
+        name: file.name,
+        size: file.size,
+        type: file.type,
+        webkitRelativePath: file.webkitRelativePath
+      }
+    }
+  }
+  dispatch(setSendFileInfo(sendInfo))
+  dataChannel.send(JSON.stringify(sendInfo))
+
+  while (start < data.byteLength) {
+    if (dataChannel.bufferedAmount === 0) {
+    // if (dataChannel.bufferedAmount < 10000000) {
+      let end = start + packetSize
+      let packetData = data.slice(start, end)
+      let packet = new Uint8Array(packetData.byteLength + 1)
+      packet[0] = (end >= data.byteLength ? 1 : 0 )
+      packet.set(new Uint8Array(packetData), 1)
+      console.log('Chrome DataChannelファイル送信中', dataChannel.bufferedAmount)
+      // console.log('DataChannelファイル送信')
+      dataChannel.send(packet)
+      start = end
+      dispatch(setSendPacketCount(++sendPacketCount))
+    }
+  }
+
+  console.log('DataChannelファイル送信完了')
+  // 送信処理リセット
+  start = 0
+  sendPacketCount = 0
 }
 
 export const sendFile = () => {
   return async (dispatch, getState) => {
-    console.log('sendFile')
-    let fileReader = new FileReader()
-    fileReader.onloadstart = (event) => { console.log('fileReader onloadstart', event) }
-    fileReader.onabort = (event) => { console.log('fileReader onabort', event) }
-    fileReader.onerror = (event) => { console.log('fileReader onerror', event) }
-    fileReader.onloadend = (event) => { console.log('fileReader onloadend', event) }
-    fileReader.onprogress = (event) => { console.log('fileReader onprogress', event.loaded + '/' + event.total) }
-    fileReader.onload = (event) => {
-      console.warn('DataChannelファイル送信開始', getState().sender.fileList[0])
-      let data = new Uint8Array(event.target.result)
-      console.log('バイト数: ' + data.byteLength, '送信回数: ' + Math.ceil(data.byteLength / chunkSize), '余り: ' + (data.byteLength % chunkSize))
-      console.warn('sendData', data)
-      const sendInfo = {
-        size: {
-          total: data.byteLength,
-          sendTotal: Math.ceil(data.byteLength / chunkSize),
-          lastSize: data.byteLength % chunkSize,
-        },
-        file: {
-          lastModified: getState().sender.fileList[0].lastModified,
-          name: getState().sender.fileList[0].name,
-          size: getState().sender.fileList[0].size,
-          type: getState().sender.fileList[0].type,
-          webkitRelativePath: getState().sender.fileList[0].webkitRelativePath
-        }
-      }
-      
-      // console.warn('blob', data)
-      // const fileBlob = new Blob(data, {type: sendInfo.file.type})
-      // console.warn('fileBlob', fileBlob)
+    // console.log('sendFile')
+    // let fileReader = new FileReader()
+    // fileReader.onloadstart = (event) => { console.log('fileReader onloadstart', event) }
+    // fileReader.onabort = (event) => { console.log('fileReader onabort', event) }
+    // fileReader.onerror = (event) => { console.log('fileReader onerror', event) }
+    // fileReader.onloadend = (event) => { console.log('fileReader onloadend', event) }
+    // fileReader.onprogress = (event) => { console.log('fileReader onprogress', event.loaded + '/' + event.total) }
+    // fileReader.onload = (event) => {
+    //   console.warn('DataChannelファイル送信開始', getState().sender.fileList[0])
+    //   let data = new Uint8Array(event.target.result)
+    //   console.log('バイト数: ' + data.byteLength, '送信回数: ' + Math.ceil(data.byteLength / packetSize), '余り: ' + (data.byteLength % packetSize))
+    //   console.warn('sendData', data)
+    //   const sendInfo = {
+    //     size: {
+    //       total: data.byteLength,
+    //       sendTotal: Math.ceil(data.byteLength / packetSize),
+    //       lastSize: data.byteLength % packetSize,
+    //     },
+    //     file: {
+    //       lastModified: getState().sender.fileList[0].lastModified,
+    //       name: getState().sender.fileList[0].name,
+    //       size: getState().sender.fileList[0].size,
+    //       type: getState().sender.fileList[0].type,
+    //       webkitRelativePath: getState().sender.fileList[0].webkitRelativePath
+    //     }
+    //   }
 
-      // console.warn('file')
-      // let file = new File(data, sendInfo.file.name)//, {
-      // //   type: sendInfo.file.type,
-      // //   lastModified: sendInfo.file.lastModified
-      // // })
-      // console.warn('file', file)
+    //   dispatch(setSentDataInfo(sendInfo))
+    //   dataChannel.send(JSON.stringify(sendInfo))
+    //   console.warn('label', dataChannel.label)
+    //   console.warn('ordered', dataChannel.ordered)
+    //   console.warn('protocol', dataChannel.protocol)
+    //   console.warn('id', dataChannel.id)
+    //   console.warn('readyState', dataChannel.readyState)
+    //   console.warn('bufferedAmount', dataChannel.bufferedAmount)
+    //   console.warn('binaryType', dataChannel.binaryType)
+    //   console.warn('maxPacketLifeType', dataChannel.maxPacketLifeType)
+    //   console.warn('maxRetransmits', dataChannel.maxRetransmits)
+    //   console.warn('negotiated', dataChannel.negotiated)
+    //   console.warn('reliable', dataChannel.reliable)
+    //   console.warn('stream', dataChannel.stream)
 
-      dispatch(setSentDataInfo(sendInfo))
-      dataChannel.send(JSON.stringify(sendInfo))
-      console.warn('label', dataChannel.label)
-      console.warn('ordered', dataChannel.ordered)
-      console.warn('protocol', dataChannel.protocol)
-      console.warn('id', dataChannel.id)
-      console.warn('readyState', dataChannel.readyState)
-      console.warn('bufferedAmount', dataChannel.bufferedAmount)
-      console.warn('binaryType', dataChannel.binaryType)
-      console.warn('maxPacketLifeType', dataChannel.maxPacketLifeType)
-      console.warn('maxRetransmits', dataChannel.maxRetransmits)
-      console.warn('negotiated', dataChannel.negotiated)
-      console.warn('reliable', dataChannel.reliable)
-      console.warn('stream', dataChannel.stream)
+    //   const userAgent = window.navigator.userAgent.toLowerCase()
+    //   if(userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
+    //     // Internet Explorer
+    //   } else if(userAgent.indexOf('edge') != -1) {
+    //     // Edge
+    //   } else if(userAgent.indexOf('chrome') != -1) {
+    //     // Google Chrome
+    //     while (start < data.byteLength) {
+    //       if (dataChannel.bufferedAmount === 0) {
+    //       // if (dataChannel.bufferedAmount < 10000000) {
+    //         let end = start + packetSize
+    //         let packetData = data.slice(start, end)
+    //         let packet = new Uint8Array(packetData.byteLength + 1)
+    //         packet[0] = (end >= data.byteLength ? 1 : 0 )
+    //         packet.set(new Uint8Array(packetData), 1)
+    //         console.log('Chrome DataChannelファイル送信中', dataChannel.bufferedAmount)
+    //         // console.log('DataChannelファイル送信')
+    //         dataChannel.send(packet)
+    //         start = end
+    //         // dispatch(setsendPacketCount(++sendPacketCount))
+    //       }
+    //     }
+    //   } else if(userAgent.indexOf('safari') != -1) {
+    //     // Safari
+    //   } else if(userAgent.indexOf('firefox') != -1) {
+    //     // FireFox
+    //     while (start < data.byteLength) {
+    //       let end = start + packetSize
+    //       let packetData = data.slice(start, end)
+    //       let packet = new Uint8Array(packetData.byteLength + 1)
+    //       packet[0] = (end >= data.byteLength ? 1 : 0)
+    //       packet.set(new Uint8Array(packetData), 1)
+    //       console.log('Firefox DataChannelファイル送信中')
+    //       // console.log('DataChannelファイル送信')
+    //       dataChannel.send(packet)
+    //       start = end
+    //       // dispatch(setsendPacketCount(++sendPacketCount))
+    //     }
+    //   } else if(userAgent.indexOf('opera') != -1) {
+    //     // Opera
+    //   } else {
+    //     // undefined
+    //   }
 
-      const userAgent = window.navigator.userAgent.toLowerCase()
-      if(userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
-        // Internet Explorer
-      } else if(userAgent.indexOf('edge') != -1) {
-        // Edge
-      } else if(userAgent.indexOf('chrome') != -1) {
-        // Google Chrome
-        while (start < data.byteLength) {
-          if (dataChannel.bufferedAmount === 0) {
-          // if (dataChannel.bufferedAmount < 10000000) {
-            let end = start + chunkSize
-            let chunkData = data.slice(start, end)
-            let chunk = new Uint8Array(chunkData.byteLength + 1)
-            chunk[0] = (end >= data.byteLength ? 1 : 0 )
-            chunk.set(new Uint8Array(chunkData), 1)
-            console.log('Chrome DataChannelファイル送信中', dataChannel.bufferedAmount)
-            // console.log('DataChannelファイル送信')
-            dataChannel.send(chunk)
-            start = end
-            // dispatch(setSentDataCount(++sentDataCount))
-          }
-        }
-      } else if(userAgent.indexOf('safari') != -1) {
-        // Safari
-      } else if(userAgent.indexOf('firefox') != -1) {
-        // FireFox
-        while (start < data.byteLength) {
-          let end = start + chunkSize
-          let chunkData = data.slice(start, end)
-          let chunk = new Uint8Array(chunkData.byteLength + 1)
-          chunk[0] = (end >= data.byteLength ? 1 : 0 )
-          chunk.set(new Uint8Array(chunkData), 1)
-          console.log('Firefox DataChannelファイル送信中')
-          // console.log('DataChannelファイル送信')
-          dataChannel.send(chunk)
-          start = end
-          // dispatch(setSentDataCount(++sentDataCount))
-        }
-      } else if(userAgent.indexOf('opera') != -1) {
-        // Opera
-      } else {
-        // undefined
-      }
-
-      console.log('DataChannelファイル送信完了')
-      // 送信処理リセット
-      start = 0
-      sentDataCount = 0
-    }
-    fileReader.readAsArrayBuffer(getState().sender.fileList[0])
+    //   console.log('DataChannelファイル送信完了')
+    //   // 送信処理リセット
+    //   start = 0
+    //   sendPacketCount = 0
+    // }
+    // fileReader.readAsArrayBuffer(getState().sender.fileList[0])
   }
 }
 
-const setSentDataInfo = (sentDataInfo) => ({
-  type: prefix + 'SET_SENT_DATA_INFO',
-  payload: { sentDataInfo }
+const setSendFileInfo = (sendFileInfo) => ({
+  type: prefix + 'SET_SEND_FILE_INFO',
+  payload: { sendFileInfo }
 })
 
-const setSentDataCount = (sentDataCount) => ({
-  type: prefix + 'SET_SENT_DATA_COUNT',
-  payload: { sentDataCount }
+const setSendPacketCount = (sendPacketCount) => ({
+  type: prefix + 'SET_SEND_PACKET_COUNT',
+  payload: { sendPacketCount }
 })

@@ -8,6 +8,8 @@ import { connect } from 'react-redux'
 import { prepare } from '../../../Actions/Status'
 import { connectSocket } from '../../../Actions/Receiver'
 
+import { fileSizeUnit } from '../../../Library/Library'
+
 import './Receiver.css'
 
 function mapStateToProps(state) {
@@ -19,11 +21,15 @@ function mapStateToProps(state) {
     selfID: state.receiver.selfID,
     senderID: state.receiver.senderID,
 
+    receiveFileList: state.receiver.receiveFileList,
+    receiveFileStorage: state.receiver.receiveFileStorage,
+
     fileAPI: state.status.fileAPI,
     available: state.status.available,
 
     receivedDataInfo: state.receiver.receivedDataInfo,
     receivedDataCount: state.receiver.receivedDataCount,
+    receiveFileUrlList: state.receiver.receiveFileUrlList,
     receivedFileUrl: state.receiver.receivedFileUrl
   }
 }
@@ -74,11 +80,11 @@ class Receiver extends Component {
     if (e.dataTransfer.files.length !== 1) return false
   }
 
-  update (e) {
-    e.preventDefault()
-    console.log('Render')
-    this.render()
-  }
+  // update (e) {
+  //   e.preventDefault()
+  //   console.log('Render')
+  //   this.render()
+  // }
 
   renderPrepare () {
     const available = this.props.available === true ? 'OK' : 'NG'
@@ -93,6 +99,20 @@ class Receiver extends Component {
         <div>senderID: {senderID}</div>
       </div>
     )
+  }
+
+  renderFileList () {
+    if (!this.props.receiveFileList || Object.keys(this.props.receiveFileList).length === 0) return <div>追加してください</div>
+    const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
+      const each = this.props.receiveFileList[id]
+      console.warn('render',each)
+      // const load = each.load === 100 ? 'loaded' : each.load + '%'
+      // const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
+      // return <li key={'filelist-' + i}><div>{each.file.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.file.size)})</div></li>
+      const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
+      return <li key={'filelist-' + i}><div>{each.name}</div><div></div><div>({fileSizeUnit(each.size)})</div><div>{download}</div></li>
+    })
+    return <div><ul>{receiveFileList}</ul></div>
   }
 
   renderReceivedInfo () {
@@ -121,6 +141,7 @@ class Receiver extends Component {
     const mobileMode = mobile ? ' mobile' : ' pc'
 
     const prepare = this.renderPrepare()
+    const fileList = this.renderFileList()
     const receivedInfo = this.renderReceivedInfo()
     const receivedFileDownload = this.renderReceivedFileDownload()
     
@@ -138,8 +159,8 @@ class Receiver extends Component {
             <label className='file'>ファイルを準備
               <input type='file' className='file' />
             </label>
+            {fileList}
           </div>
-          <button onClick={(e) => this.update(e)}>Render</button>
           {receivedFileDownload}
         </div>
       </div>

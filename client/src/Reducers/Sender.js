@@ -1,12 +1,21 @@
 const initialState = {
   loading: false,
-  fileList: undefined,
+
+  // input[type=file]の状態
+  fileList: {},
+  // 追加されたファイルと状態の管理
+  sendFileList: {},
+  // ファイル実置き場
+  sendFileStorage: {},
+
   socket: undefined,
   selfID: undefined,
   receiverID: undefined,
   dataChannelOpenStatus: false,
-  sentDataInfo: undefined,
-  sentDataCount: 0,
+  // 送信処理中のファイルの情報
+  sendFileInfo: undefined,
+  // 
+  sendPacketCount: 0,
 }
 
 const prefix = 'SENDER_'
@@ -22,6 +31,16 @@ export default function senderReducer (state = initialState, action) {
       return {
         ...state,
         fileList: action.payload.fileList
+      }
+    case prefix + 'SET_SEND_FILE_LIST':
+      return {
+        ...state,
+        sendFileList: action.payload.sendFileList
+      }
+    case prefix + 'SET_SEND_FILE_STORAGE':
+      return {
+        ...state,
+        sendFileStorage: action.payload.sendFileStorage
       }
     case prefix + 'SET_SOCKET':
       return {
@@ -43,15 +62,15 @@ export default function senderReducer (state = initialState, action) {
         ...state,
         dataChannelOpenStatus: action.payload.dataChannelOpenStatus
       }
-    case prefix + 'SET_SENT_DATA_INFO':
+    case prefix + 'SET_SEND_FILE_INFO':
       return {
         ...state,
-        sentDataInfo: action.payload.sentDataInfo
+        sendFileInfo: action.payload.sendFileInfo
       }
-    case prefix + 'SET_SENT_DATA_COUNT':
+    case prefix + 'SET_SEND_PACKET_COUNT':
       return {
         ...state,
-        sentDataCount: action.payload.sentDataCount
+        sendPacketCount: action.payload.sendPacketCount
       }
     default:
       return state
