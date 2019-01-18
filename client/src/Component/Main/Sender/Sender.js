@@ -86,6 +86,7 @@ class Sender extends Component {
     const selfID = this.props.selfID ? this.props.selfID : '-'
     const receiverID = this.props.receiverID ? this.props.receiverID : '-'
     const dataChannel = this.props.dataChannelOpenStatus ? 'OK' : 'NG'
+    const url = 'https://192.168.1.254:3000/' + selfID
     return (
       <div className='prepare'>
         <div>status: {available}</div>
@@ -93,19 +94,37 @@ class Sender extends Component {
         <div>selfID: {selfID}</div>
         <div>receiverID: {receiverID}</div>
         <div>url: <a href={'https://192.168.1.254:3000/' + selfID} target='_blank'>https://192.168.1.254:3000/{selfID}</a></div>
+        <button onClick={(e) => this.copy(e, url)}>コピー</button>
         <div>dataChannel: {dataChannel}</div>
       </div>
     )
   }
 
+  copy (e, url) {
+    e.preventDefault()
+    console.log(url)
+    const div = document.createElement('div')
+    div.appendChild(document.createElement('pre')).textContent = url
+    document.body.appendChild(div)
+    document.getSelection().selectAllChildren(div)
+    document.execCommand("copy")
+    document.body.removeChild(div)
+  }
+
   renderFileList () {
     // console.warn('sendDataList',this.props.sendFileList)
     if (!this.props.sendFileList || Object.keys(this.props.sendFileList).length === 0) return <div>追加してください</div>
+    console.warn('render', this.props.sendFileList)
+
     const sendFileList = Object.keys(this.props.sendFileList).map((id, i) => {
       const each = this.props.sendFileList[id]
-      // console.warn('render',each)
-      const load = each.load === 100 ? 'loaded' : each.load + '%'
-      const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
+      // const load = each.load === false ? 'wait' : (each.load === 100 ? 'loaded' : (each.load !== false ? 'standby' : each.load + '%'))
+      // // const send = each.send !== false ? 'standby' : (each.send === 100 ? 'sent' : (each.send === false ? 'wait' : each.send + '%'))
+      // const send = each.send === false ? 'wait' : (each.send === 100 ? 'sent' : (each.send !== false ? 'standby' : each.send + '%'))
+
+      const load = each.load === false ? 'wait' : each.load + '%'
+      const send = each.send === false ? 'wait' : each.send + '%'
+
       return <li key={'filelist-' + i}><div>{each.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.size)})</div></li>
     })
     return <div><ul>{sendFileList}</ul></div>

@@ -120,6 +120,22 @@ const setReceiveFileList = (receiveFileList) => ({
   payload: { receiveFileList }
 })
 
+function updateReceiveFileList (id, property, value, dispatch, getState) {
+  // JSON.parse(JSON.stringify())は使わない
+  const receiveFileList = {}
+  Object.assign(receiveFileList, getState().receiver.receiveFileList)
+  receiveFileList[id][property] = value
+  dispatch(setReceiveFileList(receiveFileList))
+}
+
+function updateReceiveFileInfo (property, value, dispatch, getState) {
+  // JSON.parse(JSON.stringify())は使わない
+  const receiveFileList = {}
+  Object.assign(receiveFileList, getState().sender.receiveFileList)
+  receiveFileList[id][property] = value
+  dispatch(setReceiveFileList(receiveFileList))
+}
+
 function dataReceive (event, dispatch, getState) {
   // console.log('DataChannel受信', event)
   if (typeof(event.data) === 'string') {
@@ -131,18 +147,25 @@ function dataReceive (event, dispatch, getState) {
       Object.assign(receiveFileList, getState().receiver.receiveFileList)
       return dispatch(setReceiveFileList(receiveFileList))
     } else if (JSON.parse(event.data).sendFileInfo !== undefined) {
+      // sendFileInfoプロパティを外す
       const receiveData = JSON.parse(event.data).sendFileInfo
       console.log('受信処理開始', receiveData)
+      // receiveFileInfoは上書き
       return dispatch(setReceiveFileInfo(receiveData))
     }
   }
   let receivedData = new Uint8Array(event.data)
   packets.push(receivedData)
-  dispatch(setReceivePacketCount(++receivePacketCount))
-  console.log('データ受信中', dataChannel.readyState, dataChannel.bufferedAmount)
+  const receiveFileInfo = getState().receiver.receiveFileInfo
+  updateReceiveFileList(receiveFileInfo.id, 'receive', Math.ceil(receivePacketCount / receiveFileInfo.size.sendTime * 1000.0) / 10.0, dispatch, getState)
+  console.log('データ受信中')
+  receivePacketCount++
+
   if (receivedData[0] === 0) return
   console.warn(getState().receiver.receiveFileInfo, getState().receiver.receiveFileInfo.size)
   console.log('データ受信完了', receivedData, getState().receiver.receivePacketCount, getState().receiver.receiveFileInfo.size.sendTime)
+  updateReceiveFileList(receiveFileInfo.id, 'receive', 100, dispatch, getState)
+
 
   if (getState().receiver.receivePacketCount === getState().receiver.receiveFileInfo.size.sendTime) {
     console.log('送信回数一致')
@@ -213,10 +236,10 @@ const setReceiveFileInfo = (receiveFileInfo) => ({
   payload: { receiveFileInfo }
 })
 
-const setReceivePacketCount = (receivePacketCount) => ({
-  type: prefix + 'SET_RECEIVE_PACKET_COUNT',
-  payload: { receivePacketCount }
-})
+// const setReceivePacketCount = (receivePacketCount) => ({
+//   type: prefix + 'SET_RECEIVE_PACKET_COUNT',
+//   payload: { receivePacketCount }
+// })
 
 const setReceiveFileUrlList = (receiveFileUrlList) => ({
   type: prefix + 'SET_RECEIVE_FILE_URL_LIST',

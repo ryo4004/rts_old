@@ -103,14 +103,16 @@ class Receiver extends Component {
 
   renderFileList () {
     if (!this.props.receiveFileList || Object.keys(this.props.receiveFileList).length === 0) return <div>追加してください</div>
+    // console.warn('render', this.props.receiveFileList)
     const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
       const each = this.props.receiveFileList[id]
-      console.warn('render',each)
+
+      const receive = each.receive === false ? 'wait' : each.receive + '%'
       // const load = each.load === 100 ? 'loaded' : each.load + '%'
       // const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
       // return <li key={'filelist-' + i}><div>{each.file.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.file.size)})</div></li>
       const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
-      return <li key={'filelist-' + i}><div>{each.name}</div><div></div><div>({fileSizeUnit(each.size)})</div><div>{download}</div></li>
+      return <li key={'filelist-' + i}><div>{each.name}</div><div>[{receive}]</div><div>({fileSizeUnit(each.size)})</div><div>{download}</div></li>
     })
     return <div><ul>{receiveFileList}</ul></div>
   }

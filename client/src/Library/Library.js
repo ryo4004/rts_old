@@ -16,7 +16,11 @@ export const divisionWidth = 960
 export function fileSizeUnit (size) {
   let result
   let unit
-  if (size > 999999) {
+  if (size > 999999999) {
+    result = Math.ceil(size / 100000000) / 10
+    // result = Math.ceil(size / 1000000000)
+    unit = 'GB'
+  } else if (size > 999999 && size <= 999999999) {
     result = Math.ceil(size / 100000) / 10
     // result = Math.ceil(size / 1000000)
     unit = 'MB'
