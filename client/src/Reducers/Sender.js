@@ -5,8 +5,8 @@ const initialState = {
   fileList: {},
   // 追加されたファイルと状態の管理
   sendFileList: {},
-  // ファイル実置き場
-  sendFileStorage: {},
+  // // ファイル実置き場
+  // sendFileStorage: {},
 
   socket: undefined,
   selfID: undefined,
@@ -37,11 +37,11 @@ export default function senderReducer (state = initialState, action) {
         ...state,
         sendFileList: action.payload.sendFileList
       }
-    case prefix + 'SET_SEND_FILE_STORAGE':
-      return {
-        ...state,
-        sendFileStorage: action.payload.sendFileStorage
-      }
+    // case prefix + 'SET_SEND_FILE_STORAGE':
+    //   return {
+    //     ...state,
+    //     sendFileStorage: action.payload.sendFileStorage
+    //   }
     case prefix + 'SET_SOCKET':
       return {
         ...state,

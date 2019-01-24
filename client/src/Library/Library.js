@@ -1,3 +1,5 @@
+import uniqid from 'uniqid'
+
 export const appName = 'blog'
 export const version = '0.0.1'
 
@@ -14,23 +16,44 @@ export const divisionWidth = 960
 // }
 
 export function fileSizeUnit (size) {
-  let result
-  let unit
-  if (size > 999999999) {
-    result = Math.ceil(size / 100000000) / 10
-    // result = Math.ceil(size / 1000000000)
-    unit = 'GB'
-  } else if (size > 999999 && size <= 999999999) {
-    result = Math.ceil(size / 100000) / 10
-    // result = Math.ceil(size / 1000000)
-    unit = 'MB'
-  } else if(size > 999 && size <= 999999) {
-    result = Math.ceil(size / 100) / 10
-    // result = Math.ceil(size / 1000)
-    unit = 'KB'
-  } else {
-    result = size
-    unit = 'Byte'
+
+  // 1 KB = 1024 Byte
+  const kb = 1024
+  const mb = Math.pow(kb, 2)
+  const gb = Math.pow(kb, 3)
+  const tb = Math.pow(kb, 4)
+  const pb = Math.pow(kb, 5)
+
+  const round = (size, unit) => {
+    return Math.round(size / unit * 100.0) / 100.0
   }
-  return result + unit
+
+  if (size >= pb) {
+    return round(size, pb) + ' PB'
+  } else if (size >= tb) {
+    return round(size, tb) + ' TB'
+  } else if (size >= gb) {
+    return round(size, gb) + ' GB'
+  } else if (size >= mb) {
+    return round(size, mb) + ' MB'
+  } else if (size >= kb) {
+    return round(size, kb) + ' KB'
+  }
+  return size + ' バイト'
+}
+
+export function randomString () {
+  const character = 'abcdefghijklmnopqrstuvwxyz0123456789'
+  let id = ''
+  for (var i=0; i<8; i++) { id += character[Math.floor(Math.random()*character.length)] }
+  return uniqid.time() + id
+}
+
+// charCodeAtは65535までの値を返すが、idは英数字のみなので255以内に収まるはず
+export function stringToBuffer (str) {
+  return new Uint8Array([].map.call(str, (c) => c.charCodeAt(0)))
+}
+
+export function bufferToString (buffer) {
+  return String.fromCharCode.apply('', new Uint8Array(buffer))
 }

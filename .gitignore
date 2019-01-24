@@ -10,7 +10,7 @@
 /old
 
 *.css
-/server/database/*
+/server/database/*.db
 
 # misc
 .DS_Store

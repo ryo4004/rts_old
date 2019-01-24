@@ -87,13 +87,14 @@ class Sender extends Component {
     const receiverID = this.props.receiverID ? this.props.receiverID : '-'
     const dataChannel = this.props.dataChannelOpenStatus ? 'OK' : 'NG'
     const url = 'https://192.168.1.254:3000/' + selfID
+    // const url = 'https://rts.zatsuzen.com/' + selfID
     return (
       <div className='prepare'>
         <div>status: {available}</div>
         <div>socketID: {socketID}</div>
         <div>selfID: {selfID}</div>
         <div>receiverID: {receiverID}</div>
-        <div>url: <a href={'https://192.168.1.254:3000/' + selfID} target='_blank'>https://192.168.1.254:3000/{selfID}</a></div>
+        <div>url: <a href={url} target='_blank'>{url}</a></div>
         <button onClick={(e) => this.copy(e, url)}>コピー</button>
         <div>dataChannel: {dataChannel}</div>
       </div>
@@ -114,7 +115,7 @@ class Sender extends Component {
   renderFileList () {
     // console.warn('sendDataList',this.props.sendFileList)
     if (!this.props.sendFileList || Object.keys(this.props.sendFileList).length === 0) return <div>追加してください</div>
-    console.warn('render', this.props.sendFileList)
+    // console.warn('render', this.props.sendFileList)
 
     const sendFileList = Object.keys(this.props.sendFileList).map((id, i) => {
       const each = this.props.sendFileList[id]

@@ -1,13 +1,17 @@
 import socketio from 'socket.io-client'
 
+import { bufferToString } from '../Library/Library'
 const prefix = 'RECEIVER_'
 
 let peerConnection
 let dataChannel
 
-// 受信データ一時置き場
-let packets = []
-let receivePacketCount = 0
+// 定数
+// ファイルIDは16文字
+let idLength = 16
+// 終了フラグサイズ
+let flagLength = 1
+let packetSize = 1024 * 16 - flagLength - idLength
 
 const loading = (loading) => ({
   type: prefix + 'LOADING',
@@ -20,7 +24,7 @@ export const connectSocket = (senderID) => {
     dispatch(setSenderID(senderID))
     // Socket接続
     const socket = await socketio.connect('https://192.168.1.254:3000/', {secure: true})
-    // const socket = socketio.connect('https://cast.winds-n.com, {secure: true})
+    // const socket = socketio.connect('https://rts.zatsuzen.com', {secure: true})
     socket.on('connect', () => {
       dispatch(setSocket(socket))
     })
@@ -68,6 +72,14 @@ async function connectPeerConnection (socket, obj, dispatch, getState) {
   dataChannel.onopen = () => {
     dispatch(dataChannelOpenStatus(true))
     console.warn('DataChannel Standby')
+  }
+  dataChannel.onclose = () => {
+    dispatch(dataChannelOpenStatus(false))
+    console.warn('DataChannel onclose')
+  }
+  dataChannel.onerror = () => {
+    dispatch(dataChannelOpenStatus(false))
+    console.warn('DataChannel onerror')
   }
 
   // 受信データ形式を明示(ブラウザ間差異のため)
@@ -136,78 +148,166 @@ function updateReceiveFileInfo (property, value, dispatch, getState) {
   dispatch(setReceiveFileList(receiveFileList))
 }
 
-function dataReceive (event, dispatch, getState) {
-  // console.log('DataChannel受信', event)
-  if (typeof(event.data) === 'string') {
-    // オブジェクトのプロパティによって処理判定
-    if (JSON.parse(event.data).add !== undefined) {
-      // addプロパティを外す
-      const receiveFileList = JSON.parse(event.data).add
-      console.log('受信リストに追加', receiveFileList)
-      Object.assign(receiveFileList, getState().receiver.receiveFileList)
-      return dispatch(setReceiveFileList(receiveFileList))
-    } else if (JSON.parse(event.data).sendFileInfo !== undefined) {
-      // sendFileInfoプロパティを外す
-      const receiveData = JSON.parse(event.data).sendFileInfo
-      console.log('受信処理開始', receiveData)
-      // receiveFileInfoは上書き
-      return dispatch(setReceiveFileInfo(receiveData))
-    }
-  }
-  let receivedData = new Uint8Array(event.data)
-  packets.push(receivedData)
-  const receiveFileInfo = getState().receiver.receiveFileInfo
-  updateReceiveFileList(receiveFileInfo.id, 'receive', Math.ceil(receivePacketCount / receiveFileInfo.size.sendTime * 1000.0) / 10.0, dispatch, getState)
-  console.log('データ受信中')
-  receivePacketCount++
-
-  if (receivedData[0] === 0) return
-  console.warn(getState().receiver.receiveFileInfo, getState().receiver.receiveFileInfo.size)
-  console.log('データ受信完了', receivedData, getState().receiver.receivePacketCount, getState().receiver.receiveFileInfo.size.sendTime)
-  updateReceiveFileList(receiveFileInfo.id, 'receive', 100, dispatch, getState)
+function resetReceiveFileStorage (id, dispatch, getState) {
+  console.warn('reset Storage', id)
+  const receiveFileStorage = {}
+  receiveFileStorage[id] = { packets: [] }
+  Object.assign(receiveFileStorage, getState().receiver.receiveFileStorage)
+  dispatch(setReceiveFileStorage(receiveFileStorage))
+}
 
 
-  if (getState().receiver.receivePacketCount === getState().receiver.receiveFileInfo.size.sendTime) {
-    console.log('送信回数一致')
-  }
+function updateReceiveFileStorage (id, value, dispatch, getState) {
+  // JSON.parse(JSON.stringify())は使わない
+  const receiveFileStorage = {}
+  Object.assign(receiveFileStorage, getState().receiver.receiveFileStorage)
+  receiveFileStorage[id].packets.push(value)
+  dispatch(setReceiveFileStorage(receiveFileStorage))
+}
+
+function createReceiveFile (id, dispatch, getState) {
+
+  const receiveFileInfo = getState().receiver.receiveFileList[id]
+  const packets = getState().receiver.receiveFileStorage[id].packets
+  console.log('createReceiveFile', receiveFileInfo)
+  
+  if (receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime) console.log('送信回数一致')
 
   // const reducer = (accumulator, currentValue) => accumulator + currentValue
   let length = packets.reduce((accumulator, currentValue) => {
-    return accumulator + currentValue.byteLength - 1
+    return accumulator + currentValue.byteLength - flagLength - idLength
   }, 0)
   console.log('length', length)
   let data = new Uint8Array(length)
   let pos = 0
   packets.forEach((packet) => {
-    data.set(packet.slice(1), pos)
-    pos += packet.length - 1
+    data.set(packet.slice(flagLength + idLength), pos)
+    pos += packet.length - flagLength - idLength
   })
-  console.log('受信したファイル', data, getState().receiver.receiveFileInfo.file.name)
+  console.log('受信したファイル', receiveFileInfo.name)
 
   // const blob = new Blob([data], {type: getState().receiver.receiveFileInfo.file.type})
   // const url = window.URL.createObjectURL(blob)
 
-  const file = new File([data], getState().receiver.receiveFileInfo.file.name, {
-    type: getState().receiver.receiveFileInfo.file.type,
-    lastModified: getState().receiver.receiveFileInfo.file.lastModified
+  const file = new File([data], receiveFileInfo.name, {
+    type: receiveFileInfo.type,
+    lastModified: receiveFileInfo.lastModified
   })
   console.log(file)
 
   // const url = window.URL.createObjectURL(file)
 
-  // dispatch(setReceivedFileUrl(url))
-
-  const id = getState().receiver.receiveFileInfo.id
-  const receiveFileUrlList = {
-    [id]: window.URL.createObjectURL(file)
-  }
+  const receiveFileUrlList = { [id]: window.URL.createObjectURL(file) }
   Object.assign(receiveFileUrlList, getState().receiver.receiveFileUrlList)
   dispatch(setReceiveFileUrlList(receiveFileUrlList))
 
   // 受信データ一時置き場をリセットする
-  packets = []
-  receivePacketCount = 0
-  dispatch(setReceiveFileInfo(undefined))
+  resetReceiveFileStorage(id, dispatch, getState)
+  // dispatch(setReceiveFileInfo(undefined))
+}
+
+// データ受信
+function dataReceive (event, dispatch, getState) {
+  // console.log('DataChannel受信', event)
+  if (typeof(event.data) === 'string') {
+    // オブジェクトのプロパティによって処理判定
+    if (JSON.parse(event.data).add !== undefined) {
+      // 受信ファイル一覧を取得
+      // addプロパティを外す
+      const receiveFileList = JSON.parse(event.data).add
+      console.log('受信ファイルリストに追加', receiveFileList)
+      Object.assign(receiveFileList, getState().receiver.receiveFileList)
+      dispatch(setReceiveFileList(receiveFileList))
+      return
+    } else if (JSON.parse(event.data).start !== undefined) {
+      // ファイル受信開始
+      // startプロパティを外す
+      const startReceive = JSON.parse(event.data).start
+      console.time('receiveFile' + startReceive.id)
+      console.warn('ファイル受信開始', getState().receiver.receiveFileList[startReceive.id].name)
+      updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)
+      updateReceiveFileList(startReceive.id, 'rest', startReceive.size.rest, dispatch, getState)
+      updateReceiveFileList(startReceive.id, 'sendTime', startReceive.size.sendTime, dispatch, getState)
+      updateReceiveFileList(startReceive.id, 'preReceiveInfo', true, dispatch, getState)
+      resetReceiveFileStorage(startReceive.id, dispatch, getState)
+
+      // receiveFileInfoは上書き
+      return // dispatch(setReceiveFileInfo(receiveData))
+    } else if (JSON.parse(event.data).end !== undefined) {
+      // ファイル受信完了
+      // endプロパティを外す
+      const endReceive = JSON.parse(event.data).end
+      console.timeEnd('receiveFile' + endReceive.id)
+      console.warn('ファイル受信完了', getState().receiver.receiveFileList[endReceive.id].name)
+      createReceiveFile(endReceive.id, dispatch, getState)
+      updateReceiveFileList(endReceive.id, 'receive', 100, dispatch, getState)
+      return
+    }
+  }
+  // ファイル本体受信(ファイル情報ではない)
+  const receiveData = new Uint8Array(event.data)
+  const id = bufferToString(receiveData.slice(flagLength, flagLength + idLength))
+  const receiveFileInfo = getState().receiver.receiveFileList[id]
+  updateReceiveFileStorage(id, receiveData, dispatch, getState)
+  updateReceiveFileList(id, 'receivePacketCount', receiveFileInfo.receivePacketCount + 1, dispatch, getState)
+  updateReceiveFileList(id, 'receive', Math.ceil(receiveFileInfo.receivePacketCount / receiveFileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
+
+  return console.log('データ受信中', id)
+
+  // console.log('receivedData', receivedData, receivedData.slice(flagLength, flagLength + idLength), bufferToString(receivedData.slice(flagLength, flagLength + idLength)))
+
+  // packets.push(receivedData)
+  // const receiveFileInfo = getState().receiver.receiveFileInfo
+  // updateReceiveFileList(receiveFileInfo.id, 'receive', Math.ceil(receivePacketCount / receiveFileInfo.size.sendTime * 1000.0) / 10.0, dispatch, getState)
+  // console.log('データ受信中')
+  // receivePacketCount++
+
+  // if (receivedData[0] === 0) return
+  // console.warn(getState().receiver.receiveFileInfo, getState().receiver.receiveFileInfo.size)
+  // console.log('データ受信完了', receivedData, getState().receiver.receivePacketCount, getState().receiver.receiveFileInfo.size.sendTime)
+  // updateReceiveFileList(receiveFileInfo.id, 'receive', 100, dispatch, getState)
+
+  // if (getState().receiver.receivePacketCount === getState().receiver.receiveFileInfo.size.sendTime) {
+  //   console.log('送信回数一致')
+  // }
+
+  // // const reducer = (accumulator, currentValue) => accumulator + currentValue
+  // let length = packets.reduce((accumulator, currentValue) => {
+  //   return accumulator + currentValue.byteLength - flagLength - idLength
+  // }, 0)
+  // console.log('length', length)
+  // let data = new Uint8Array(length)
+  // let pos = 0
+  // packets.forEach((packet) => {
+  //   data.set(packet.slice(flagLength + idLength), pos)
+  //   pos += packet.length - flagLength - idLength
+  // })
+  // console.log('受信したファイル', data, getState().receiver.receiveFileInfo.file.name)
+
+  // // const blob = new Blob([data], {type: getState().receiver.receiveFileInfo.file.type})
+  // // const url = window.URL.createObjectURL(blob)
+
+  // const file = new File([data], getState().receiver.receiveFileInfo.file.name, {
+  //   type: getState().receiver.receiveFileInfo.file.type,
+  //   lastModified: getState().receiver.receiveFileInfo.file.lastModified
+  // })
+  // console.log(file)
+
+  // // const url = window.URL.createObjectURL(file)
+
+  // // dispatch(setReceivedFileUrl(url))
+
+  // const id = getState().receiver.receiveFileInfo.id
+  // const receiveFileUrlList = {
+  //   [id]: window.URL.createObjectURL(file)
+  // }
+  // Object.assign(receiveFileUrlList, getState().receiver.receiveFileUrlList)
+  // dispatch(setReceiveFileUrlList(receiveFileUrlList))
+
+  // // 受信データ一時置き場をリセットする
+  // packets = []
+  // receivePacketCount = 0
+  // // dispatch(setReceiveFileInfo(undefined))
 }
 
 const setSocket = (socket) => ({
@@ -230,11 +330,11 @@ const dataChannelOpenStatus = (dataChannelOpenStatus) => ({
   payload: { dataChannelOpenStatus }
 })
 
-// 受信処理中のファイル情報
-const setReceiveFileInfo = (receiveFileInfo) => ({
-  type: prefix + 'SET_RECEIVE_FILE_INFO',
-  payload: { receiveFileInfo }
-})
+// // 受信処理中のファイル情報
+// const setReceiveFileInfo = (receiveFileInfo) => ({
+//   type: prefix + 'SET_RECEIVE_FILE_INFO',
+//   payload: { receiveFileInfo }
+// })
 
 // const setReceivePacketCount = (receivePacketCount) => ({
 //   type: prefix + 'SET_RECEIVE_PACKET_COUNT',
@@ -249,4 +349,9 @@ const setReceiveFileUrlList = (receiveFileUrlList) => ({
 const setReceivedFileUrl = (receivedFileUrl) => ({
   type: prefix + 'SET_RECEIVED_FILE_URL',
   payload: { receivedFileUrl }
+})
+
+const setReceiveFileStorage = (receiveFileStorage) => ({
+  type: prefix + 'SET_RECEIVE_FILE_STORAGE',
+  payload: { receiveFileStorage }
 })
