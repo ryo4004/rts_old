@@ -107,12 +107,26 @@ class Receiver extends Component {
     const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
       const each = this.props.receiveFileList[id]
 
-      const receive = each.receive === false ? 'wait' : each.receive + '%'
+      const receive = each.receive === false ? 'wait' : (each.receive).toFixed(1) + '%'
+      const receiveProgress = each.receive ? {backgroundSize: each.receive + '% 100%'} : {backgroundSize: '0% 100%'}
+
+      const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
+      const fileSize = fileSizeUnit(each.size)
       // const load = each.load === 100 ? 'loaded' : each.load + '%'
       // const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
       // return <li key={'filelist-' + i}><div>{each.file.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.file.size)})</div></li>
       const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
-      return <li key={'filelist-' + i}><div>{each.name}</div><div>[{receive}]</div><div>({fileSizeUnit(each.size)})</div><div>{download}</div></li>
+      return (
+        <li key={'filelist-' + i}>
+          <div>{each.name}</div>
+          <div className='receive-percent'>{receive}</div>
+          <div className='receive-progress-bar'>
+            <div className='receive-progress' style={receiveProgress}></div>
+          </div>
+          <div className='receive-size'>{receiveSize} / {fileSize}</div>
+          <div>{download}</div>
+        </li>
+      )
     })
     return <div><ul>{receiveFileList}</ul></div>
   }

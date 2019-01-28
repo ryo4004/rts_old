@@ -169,7 +169,6 @@ function createReceiveFile (id, dispatch, getState) {
 
   const receiveFileInfo = getState().receiver.receiveFileList[id]
   const packets = getState().receiver.receiveFileStorage[id].packets
-  console.log('createReceiveFile', receiveFileInfo)
   
   if (receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime) console.log('送信回数一致')
 
@@ -177,7 +176,6 @@ function createReceiveFile (id, dispatch, getState) {
   let length = packets.reduce((accumulator, currentValue) => {
     return accumulator + currentValue.byteLength - flagLength - idLength
   }, 0)
-  console.log('length', length)
   let data = new Uint8Array(length)
   let pos = 0
   packets.forEach((packet) => {
@@ -204,6 +202,7 @@ function createReceiveFile (id, dispatch, getState) {
   // 受信データ一時置き場をリセットする
   resetReceiveFileStorage(id, dispatch, getState)
   // dispatch(setReceiveFileInfo(undefined))
+  console.timeEnd('receiveTotal' + id)
 }
 
 // データ受信
@@ -223,6 +222,7 @@ function dataReceive (event, dispatch, getState) {
       // ファイル受信開始
       // startプロパティを外す
       const startReceive = JSON.parse(event.data).start
+      console.time('receiveTotal' + startReceive.id)
       console.time('receiveFile' + startReceive.id)
       console.warn('ファイル受信開始', getState().receiver.receiveFileList[startReceive.id].name)
       updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)

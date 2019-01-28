@@ -124,9 +124,25 @@ class Sender extends Component {
       // const send = each.send === false ? 'wait' : (each.send === 100 ? 'sent' : (each.send !== false ? 'standby' : each.send + '%'))
 
       const load = each.load === false ? 'wait' : each.load + '%'
-      const send = each.send === false ? 'wait' : each.send + '%'
+      const send = each.send === false ? (each.load ? 'File Loading ...' : 'not send') : (each.send).toFixed(1) + '%'
 
-      return <li key={'filelist-' + i}><div>{each.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.size)})</div></li>
+      const loadProgress = each.load ? {backgroundSize: each.load + '% 100%'} : {backgroundSize: '0% 100%'}
+      const sendProgress = each.send ? {backgroundSize: each.send + '% 100%'} : {backgroundSize: '0% 100%'}
+
+      const sendSize = isNaN(each.send) ? '-' : fileSizeUnit(each.size * each.send / 100)
+      const fileSize = fileSizeUnit(each.size)
+
+      return (
+        <li key={'filelist-' + i}>
+          <div>{each.name}</div>
+          <div className='send-percent'>{send}</div>
+          <div className='send-progress-bar'>
+            <div className='send-progress' style={sendProgress}></div>
+            <div className='load-progress' style={loadProgress}></div>
+          </div>
+          <div className='send-size'>{sendSize} / {fileSize}</div>
+        </li>
+      )
     })
     return <div><ul>{sendFileList}</ul></div>
   }
@@ -165,10 +181,10 @@ class Sender extends Component {
             <label className='file'>共有するファイルを追加
               <input type='file' className='file' onChange={(e) => this.fileSelect(e)} multiple />
             </label>
+            <button className='test' onClick={() => this.props.sendData()}>送信</button>
             {fileList}
             {sentInfo}
-            <button className='test' onClick={() => this.props.sendData()}>送信</button>
-            <button className='test' onClick={() => this.props.sendFile()}>ファイル送信</button>
+            {/* <button className='test' onClick={() => this.props.sendFile()}>ファイル送信</button> */}
           </div>
           {/* <button className='standby'></button> */}
         </div>

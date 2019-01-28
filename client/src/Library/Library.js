@@ -16,7 +16,6 @@ export const divisionWidth = 960
 // }
 
 export function fileSizeUnit (size) {
-
   // 1 KB = 1024 Byte
   const kb = 1024
   const mb = Math.pow(kb, 2)
@@ -29,17 +28,17 @@ export function fileSizeUnit (size) {
   }
 
   if (size >= pb) {
-    return round(size, pb) + ' PB'
+    return round(size, pb).toFixed(2) + 'PB'
   } else if (size >= tb) {
-    return round(size, tb) + ' TB'
+    return round(size, tb).toFixed(2) + 'TB'
   } else if (size >= gb) {
-    return round(size, gb) + ' GB'
+    return round(size, gb).toFixed(2) + 'GB'
   } else if (size >= mb) {
-    return round(size, mb) + ' MB'
+    return round(size, mb).toFixed(2) + 'MB'
   } else if (size >= kb) {
-    return round(size, kb) + ' KB'
+    return round(size, kb).toFixed(2) + 'KB'
   }
-  return size + ' バイト'
+  return size + 'バイト'
 }
 
 export function randomString () {

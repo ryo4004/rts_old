@@ -107,7 +107,7 @@ export const addFile = (fileList) => {
       // 送信直前に開くのでここではファイルにアクセスしない
       // openFile(id, fileList[num], dispatch, getState)
 
-      // dataChannelが開いていたらファイルリスト情報を送信する
+      // ファイルリスト情報を送信する (dataChannelが閉じている場合はなにもしない)
       sendFileListOnDataChannel(id, sendFileList, dispatch, getState)
     })
   }
@@ -145,11 +145,6 @@ const setSendFileList = (sendFileList) => ({
   payload: { sendFileList }
 })
 
-// const setSendFileStorage = (sendFileStorage) => ({
-//   type: prefix + 'SET_SEND_FILE_STORAGE',
-//   payload: { sendFileStorage }
-// })
-
 export const connectSocket = () => {
   return async (dispatch, getState) => {
     dispatch(loading(true))
@@ -181,8 +176,17 @@ export const connectSocket = () => {
       peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel
         dataChannel.onopen = () => {
-          dispatch(dataChannelOpenStatus(true))
           console.warn('DataChannel onopen')
+          dispatch(dataChannelOpenStatus(true))
+          // ファイルリストを送信
+          console.log('getState', getState(), getState().sender, getState().sender.sendFileList)
+          const sendFileList = getState().sender.sendFileList
+          Object.keys(sendFileList).forEach((num) => {
+            console.warn('preSendInfo未送信確認', num, sendFileList[num])
+            if (!sendFileList[num].preSendInfo) {
+              sendFileListOnDataChannel (sendFileList[num].id, sendFileList, dispatch, getState)
+            }
+          })
         }
         dataChannel.onclose = () => {
           dispatch(dataChannelOpenStatus(false))
@@ -320,7 +324,7 @@ function openSendFile (id, fileInfo, dispatch, getState) {
   if (!getState().sender.dataChannelOpenStatus) {
     return console.error('dataChannel error')
   }
-
+  console.time('sendTotal' + id)
   // FileReaderの設定
   let fileReader = new FileReader()
   fileReader.onloadstart = (event) => {
@@ -367,14 +371,14 @@ function openSendFile (id, fileInfo, dispatch, getState) {
     let start = 0
     let sendPacketCount = 0
 
-    // 送信
+    // 送信 (レンダリングエンジンが止まる)
     // while (start < data.byteLength) {
     //   if (dataChannel.bufferedAmount === 0) {
     //     let end = start + packetSize
 
     //     let packetData = data.slice(start, end)
 
-    //     console.log('ファイル送信中', id, end - start, packetData.length, start, end)
+    //     console.log('ファイル送信中')
 
     //     let packet = new Uint8Array(packetData.byteLength + flagLength + idLength)
     //     // [0] は終了フラグ
@@ -385,7 +389,7 @@ function openSendFile (id, fileInfo, dispatch, getState) {
     //     packet.set(new Uint8Array(packetData), flagLength + idLength)
 
     //     // 送信および状態更新
-    //     // dataChannel.send(packet)
+    //     dataChannel.send(packet)
     //     updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
 
     //     sendPacketCount++
@@ -393,19 +397,23 @@ function openSendFile (id, fileInfo, dispatch, getState) {
     //   }
     // }
 
+    // console.log('送信完了')
+
     // const endFileInfo = {
     //   end: {
     //     id,
     //   }
     // }
     // dataChannel.send(JSON.stringify(endFileInfo))
+    // console.timeEnd('sendFile' + id)
+    // console.timeEnd('sendTotal' + id)
 
     // updateSendFileList(id, 'send', 100, dispatch, getState)
 
+    // 送信2
     start = 0
     sendPacketCount = 0
 
-    // await setTimeout(function timeout () {
     function sendPacket () {
       if ((sendPacketCount % 1000) === 0) console.timeStamp('each')
       if (!(start < data.byteLength)) {
@@ -417,8 +425,10 @@ function openSendFile (id, fileInfo, dispatch, getState) {
         dataChannel.send(JSON.stringify(endFileInfo))
         updateSendFileList(id, 'send', 100, dispatch, getState)
         console.timeEnd('sendFile' + id)
+        console.timeEnd('sendTotal' + id)
         console.log('DataChannelファイル送信完了')
-        return console.log('setTimeout end')
+        console.log('setTimeout end')
+        return
       }
       if (dataChannel.bufferedAmount === 0) {
         
@@ -429,26 +439,18 @@ function openSendFile (id, fileInfo, dispatch, getState) {
         packet.set(fileInfo.idBuffer, flagLength)
         packet.set(new Uint8Array(packetData), flagLength + idLength)
 
-        // console.log('ファイル送信中2', id, sendPacketCount, data.byteLength, start, end)
         console.log('ファイル送信中2')
 
         // 送信および状態更新
         dataChannel.send(packet)
         updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
-        // console.log('ファイル送信中2', id, Math.ceil(sendPacketCount / fileInfo.sendTime * 100.0))
 
         sendPacketCount++
         start = end
       }
       setTimeout(sendPacket)
-      // sendPacket()
     }
-    // }, 1)
     sendPacket()
-
-    // 送信処理リセット
-    // start = 0
-    // sendPacketCount = 0
   }
 
   // ファイル読み込み
