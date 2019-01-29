@@ -80,6 +80,8 @@ export const addFile = (fileList) => {
 
           // Sender用プロパティ(変更不可)
           sendPacketCount: 0,
+          // undefined: 不明, true: 成功, false: 失敗
+          receiveComplete: undefined,
 
           // Receiver用プロパティ(変更不可)
           // receive: false, (ファイルリスト送信時に追加する)
@@ -206,7 +208,10 @@ export const connectSocket = () => {
           dispatch(dataChannelOpenStatus(false))
           console.warn('DataChannel onerror')
         }
-        dataChannel.onmessage = (event) => { console.log('DataChannel受信', event) }
+        dataChannel.onmessage = (event) => {
+          console.log('DataChannel受信', event)
+          dataReceive(event, dispatch, getState)
+        }
       }
       peerConnection.oniceconnectionstatechange = (event) => { console.log('oniceconnectionstatechange', event) }
       peerConnection.onicegatheringstatechange = (event) => { console.log('onicegatheringstatechange', event) }
@@ -236,6 +241,18 @@ export const connectSocket = () => {
       console.warn('経路受信')
       await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
+  }
+}
+
+function dataReceive (event, dispatch, getState) {
+  if (typeof(event.data) === 'string') {
+    if (JSON.parse(event.data).receiveComplete !== undefined) {
+      const receiveComplete = JSON.parse(event.data).receiveComplete
+      // 受信完了通知
+      console.warn('受信完了通知', receiveComplete)
+      // receiveComplete
+      updateSendFileList(receiveComplete.id, 'receiveComplete', receiveComplete.result, dispatch, getState)
+    }
   }
 }
 

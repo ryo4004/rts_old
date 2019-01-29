@@ -124,7 +124,7 @@ class Sender extends Component {
       // const send = each.send === false ? 'wait' : (each.send === 100 ? 'sent' : (each.send !== false ? 'standby' : each.send + '%'))
 
       const load = each.load === false ? 'wait' : each.load + '%'
-      const send = each.send === false ? (each.load ? 'File Loading ...' : 'not send') : (each.send).toFixed(1) + '%'
+      const send = each.send === false ? (each.load ? 'File Loading ...' : '未送信') : (each.send !== 100 ? (each.send).toFixed(1) + '%' : (each.receiveComplete === undefined ? '受信処理待ち' : (each.receiveComplete ? '送信成功' : '送信失敗')))
 
       const loadProgress = each.load ? {backgroundSize: each.load + '% 100%'} : {backgroundSize: '0% 100%'}
       const sendProgress = each.send ? {backgroundSize: each.send + '% 100%'} : {backgroundSize: '0% 100%'}

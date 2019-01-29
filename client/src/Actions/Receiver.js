@@ -169,12 +169,24 @@ function createReceiveFile (id, dispatch, getState) {
 
   const receiveFileInfo = getState().receiver.receiveFileList[id]
   const packets = getState().receiver.receiveFileStorage[id].packets
-  
+
+  let receiveResult
   if (receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime) {
-    console.log('送信回数一致')
+    console.log('送信回数一致')    
+    receiveResult = true
   } else {
     console.log('送信回数不一致')
+    receiveResult = false
   }
+
+  // 受信完了通知を送る
+  let receiveComplete = {
+    receiveComplete: {
+      id: id,
+      result: receiveResult
+    }
+  }
+  dataChannel.send(JSON.stringify(receiveComplete))
 
   console.log('受信したファイル', receiveFileInfo)
 
@@ -192,14 +204,13 @@ function createReceiveFile (id, dispatch, getState) {
   let fileArray = []
 
   packets.forEach((packet, i) => {
-    console.log(i)
     fileArray.push(packet.slice(flagLength + idLength))
   })
 
   // console.warn(packets, fileArray)
 
+  // FileSystemは非推奨らしい
   // window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem
-
   // window.requestFileSystem(window.TEMPORARY, receiveFileInfo.size, (fs) => {
   //   fs.root.getFile(receiveFileInfo.name, {create: true, exclusive: true}, (fileEntry) => {
   //     console.log(fileEntry)
