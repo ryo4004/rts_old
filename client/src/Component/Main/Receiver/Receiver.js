@@ -8,7 +8,7 @@ import { connect } from 'react-redux'
 import { prepare } from '../../../Actions/Status'
 import { connectSocket } from '../../../Actions/Receiver'
 
-import { fileSizeUnit } from '../../../Library/Library'
+import { fileSizeUnit, fileIcon } from '../../../Library/Library'
 
 import './Receiver.css'
 
@@ -106,29 +106,54 @@ class Receiver extends Component {
     // console.warn('render', this.props.receiveFileList)
     const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
       const each = this.props.receiveFileList[id]
+      if (each.delete) return (
+        <li key={'filelist-' + i}>
+          <div className='receive-status'><span>取り消されました</span></div>
+          <div className='receive-info'>
+            <div className='detail'>
+              <div className='file-name'>{each.name}</div>
+            </div>
+          </div>
+        </li>
+      )
 
-      const receive = each.receive === false ? 'wait' : (each.receive).toFixed(1) + '%'
+      const receivePercent = each.receive === false ? <div className='receive-percent standby'>{each.receive + '%'}</div> : (each.receive !== 100 ? <div className='receive-percent receiving'>{(each.receive).toFixed(1) + '%'}</div> : <div className='receive-percent complete'>{each.receive + '%'}</div>)
       const receiveProgress = each.receive ? {backgroundSize: each.receive + '% 100%'} : {backgroundSize: '0% 100%'}
 
-      const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
+      const status = each.receive === false ? <span>未受信</span> : each.receive !== 100 ? <span>受信中</span> : <span>完了</span>
+
+      const icon = <i className={fileIcon(each.name, each.type)}></i>
+
+      // const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
       const fileSize = fileSizeUnit(each.size)
-      // const load = each.load === 100 ? 'loaded' : each.load + '%'
-      // const send = each.send === true ? 'sent' : (each.load === 100 ? 'standby' : 'wait')
-      // return <li key={'filelist-' + i}><div>{each.file.name}</div><div>[{load}][{send}]</div><div>({fileSizeUnit(each.file.size)})</div></li>
-      const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
-      return (
-        <li key={'filelist-' + i}>
-          <div>{each.name}</div>
-          <div className='receive-percent'>{receive}</div>
-          <div className='receive-progress-bar'>
+
+      // const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
+
+      const name = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>{each.name}</a> : each.name
+
+      const progressBar = () => {
+        return (
+          <div className={'receive-progress-bar' + (each.receive === false ? ' standby' : (each.receive !== 100 ? ' receiving' : ' complete'))}>
             <div className='receive-progress' style={receiveProgress}></div>
           </div>
-          <div className='receive-size'>{receiveSize} / {fileSize}</div>
-          <div>{download}</div>
+        )
+      }
+
+      return (
+        <li key={'filelist-' + i}>
+          <div className='receive-status'>{status}</div>
+          <div className='receive-info'>
+            <div className='file-icon'>{icon}{receivePercent}</div>
+            <div className='detail'>
+              <div className='file-name'>{name}</div>
+              <div className='receive-size'>{fileSize}</div>
+              {progressBar()}
+            </div>
+          </div>
         </li>
       )
     })
-    return <div><ul>{receiveFileList}</ul></div>
+    return <div><ul className='receive-file-list'>{receiveFileList}</ul></div>
   }
 
   renderReceivedInfo () {

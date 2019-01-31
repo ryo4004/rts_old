@@ -23,7 +23,7 @@ export const connectSocket = (senderID) => {
     dispatch(loading(true))
     dispatch(setSenderID(senderID))
     // Socket接続
-    const socket = await socketio.connect('https://192.168.1.254:3000/', {secure: true})
+    const socket = await socketio.connect('https://' + location.host + '/', {secure: true})
     // const socket = socketio.connect('https://rts.zatsuzen.com', {secure: true})
     socket.on('connect', () => {
       dispatch(setSocket(socket))
@@ -252,6 +252,14 @@ function dataReceive (event, dispatch, getState) {
       console.log('受信ファイルリストに追加', receiveFileList)
       Object.assign(receiveFileList, getState().receiver.receiveFileList)
       dispatch(setReceiveFileList(receiveFileList))
+      return
+    } else if (JSON.parse(event.data).delete !== undefined) {
+      // ファイル削除通知
+      // deleteプロパティを外す
+      const deleteReceive = JSON.parse(event.data).delete
+      console.time('delete id' + deleteReceive.id)
+      updateReceiveFileList(deleteReceive.id, 'delete', true, dispatch, getState)
+      resetReceiveFileStorage(deleteReceive.id, dispatch, getState)
       return
     } else if (JSON.parse(event.data).start !== undefined) {
       // ファイル受信開始

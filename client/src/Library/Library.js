@@ -15,6 +15,66 @@ export const divisionWidth = 960
 //   return str.split('T')[1].split(':')[0] + ':' + str.split('T')[1].split(':')[1]
 // }
 
+export function fileIcon (name, type) {
+  const extension = name.indexOf('.') !== -1 ? name.split('.')[name.split('.').length - 1] : false
+  // console.log(extension, name, type)
+  if (type === 'text/html') {
+    return 'fas fa-file-code'
+  } else if (type.indexOf('text/css') === 0) {
+    return 'fas fa-file-code'
+  } else if (type.indexOf('text/javascript') === 0) {
+    return 'fas fa-file-code'
+  } else if (type.indexOf('application/json') === 0) {
+    return 'fas fa-file-code'
+  } else if (type.indexOf('application/x-zip-compressed') === 0) {
+    return 'fas fa-file-archive'
+  } else if (type.indexOf('application/pdf') === 0) {
+    return 'fas fa-file-pdf'
+  } else if (type.indexOf('application/vnd.openxmlformats-officedocument.wordprocessingml.document') === 0) {
+    // 最新のWord
+    return 'fas fa-file-word'
+  } else if (type.indexOf('application/msword') === 0) {
+    // 97-2003
+    return 'fas fa-file-word'
+  } else if (type.indexOf('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet') === 0) {
+    // 最新のExcel
+    return 'fas fa-file-excel'
+  } else if (type.indexOf('application/vnd.ms-excel') === 0) {
+    // 97-2003
+    if (extension === 'csv') {
+      return 'fas fa-file-csv'
+    }
+    return 'fas fa-file-excel'
+  } else if (type.indexOf('application/ms-excel') === 0) {
+    // 不明
+    return 'fas fa-file-excel'
+  } else if (type.indexOf('application/vnd.openxmlformats-officedocument.presentationml.presentation') === 0) {
+    // 最新のPowerPoint
+    return 'fas fa-file-powerpoint'
+  } else if (type.indexOf('application/vnd.ms-powerpoint') === 0) {
+    // 97-2003
+    return 'fas fa-file-powerpoint'
+  } else if (type.indexOf('image') === 0) {
+    return 'fas fa-file-image'
+  } else if (type.indexOf('audio') === 0) {
+    return 'fas fa-file-audio'
+  } else if (type.indexOf('video') === 0) {
+    return 'fas fa-file-video'
+  } else if (type.indexOf('text') === 0) {
+    return 'fas fa-file-alt'
+  }
+  if (extension === 'md') {
+    return 'fas fa-file-code'
+  } else if (extension === 'scss') {
+    return 'fas fa-file-code'
+  } else if (extension === 'gitignore') {
+    return 'fas fa-file-code'
+  } else if (extension === 'py') {
+    return 'fas fa-file-code'
+  }
+  return 'fas fa-file'
+}
+
 export function fileSizeUnit (size) {
   // 1 KB = 1024 Byte
   const kb = 1024

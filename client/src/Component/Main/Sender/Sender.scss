@@ -1,3 +1,20 @@
+// Semantic UI
+// @primaryColor   : @pink;
+// @secondaryColor : @grey;
+// @red            : #B03060;
+// @orange         : #FE9A76;
+// @yellow         : #FFD700;
+// @olive          : #32CD32;
+// @green          : #016936;
+// @teal           : #008080;
+// @blue           : #0E6EB8;
+// @violet         : #EE82EE;
+// @purple         : #B413EC;
+// @pink           : #FF1493;
+// @brown          : #A52A2A;
+// @grey           : #A0A0A0;
+// @black          : #000000;
+
 .home {
 
   header {
@@ -18,7 +35,7 @@
       padding: 0 16px;
 
       display: flex;
-      align-items: center;  
+      align-items: center;
 
       h2 {
         color: #333;
@@ -43,6 +60,37 @@
 
     // 030 Happy Fisher
     background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+
+    .prepare {
+
+      .data-channel-status {
+        text-align: center;
+        font-size: 14px;
+
+        & > div {
+          display: inline-block;
+          color: #fff;
+
+          label {
+            padding: 2px 6px 2px 2px;
+            border-radius: 0 8px 8px 0;
+          }
+
+          span {
+            padding: 2px 2px 2px 6px;
+            border-radius: 8px 0 0 8px;
+          }
+
+          &.ok label, &.ok span {
+            background: #3880ff;
+          }
+
+          &.ng label, &.ng span {
+            background: #f04141;
+          }
+        }
+      }
+    }
 
     .file-input {
       // margin: 32px auto;
@@ -73,55 +121,179 @@
         input.file {
           display: none;
         }
-      }  
-    }
-
-    .send-percent {
-      margin: 2px 10px;
-      padding: 2px 10px;
-      // font-family: fira-mono,monospace;
-      // font-family: source-code-pro, monospace;
-      font-family: ocr-b-std, monospace;
-      font-size: 12px;
-      text-align: right;
-    }
-
-    .send-size {
-      margin: 2px 10px;
-      padding: 2px 10px;
-      font-family: ocr-b-std, monospace;
-      font-size: 12px;
-      text-align: right;
-    }
-
-    .send-progress-bar {
-      position: relative;
-      margin: 2px 10px;
-      padding: 2px 10px;
-      
-      .send-progress {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
-        z-index: 2;
-        background: linear-gradient(rgba(3,213,250,1),rgba(3,213,250,1)) no-repeat rgba(255,255,255,.8);
-        background-size: 0% 100%;
       }
+    }
 
-      .load-progress {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 4px;
-        border-radius: 2px;
-        z-index: 1;
-        background: linear-gradient(rgba(255,255,255,.8),rgba(255,255,255,.8)) no-repeat rgba(255,255,255,.2);
-        background-size: 0% 100%;
+    ul.send-file-list {
+      width: 80vw;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0;
+      list-style: none;
+
+      li {
+        margin: 8px auto;
+        padding: 0 32px 24px;
+        border-radius: 8px;
+        background: rgba(255,255,255,.5);
+        cursor: default;
+        transition: background-color .2s ease-in-out 0s;
+
+        &:hover {
+          background: rgba(255,255,255,.6);
+        }
+
+        .send-status {
+          text-align: right;
+          font-size: 12px;
+          height: 24px;
+
+          & > span {
+            display: inline-block;
+            padding: 2px 6px;
+            background: rgba(0,0,0,.1);
+            transition: background-color .2s ease-in-out 0s;
+            cursor: pointer;
+
+            &:hover {
+              background: rgba(255,255,255,.6);
+            }
+
+            span {
+
+              &.delete {
+                margin-left: 6px;
+                color: #666;
+              }
+            }
+          }
+        }
+
+        .send-info {
+          display: flex;
+
+          .file-icon {
+            width: 48px;
+            margin-right: 32px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            i {
+              color: #888;
+              font-size: 32px;
+            }
+
+            .send-percent {
+              position: absolute;
+              margin: 0;
+              padding: 0 4px;
+              border-radius: 10px;
+              // font-family: fira-mono,monospace;
+              // font-family: source-code-pro, monospace;
+              font-family: ocr-b-std, monospace;
+              font-size: 12px;
+              text-align: right;
+              background: rgba(255,255,0,.8);
+
+              &.standby {
+                opacity: 0;
+              }
+
+              &.sending {
+                // transition: all .1s ease-in-out 0s;
+              }
+
+              &.complete {
+                opacity: 0;
+                background: rgba(255,255,255,.8);
+                transition: all 2s ease-in-out 0s;
+              }
+            }
+          }
+
+          .detail {
+            flex: 1;
+
+            .file-name {
+              font-size: 14px;
+              font-family: "Hiragino Kaku Gothic ProN","メイリオ", sans-serif;
+            }
+
+            .send-size {
+              margin: 0;
+              padding: 0;
+              font-family: ocr-b-std, monospace;
+              font-size: 12px;
+              color: #888;
+              // text-align: right;
+            }
+
+            .send-progress-bar {
+              position: relative;
+              margin: 0;
+              padding: 0;
+
+              &.standby {
+                opacity: 0;
+              }
+
+              &.sending {
+                // transition: all .1s ease-in-out 0s;
+              }
+
+              &.complete {
+                opacity: 0;
+                background: rgba(255,255,255,.8);
+                transition: all .5s ease-in-out 0s;
+              }
+
+              .send-progress {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 4px;
+                border-radius: 2px;
+                z-index: 2;
+                background: linear-gradient(rgba(3,213,250,1),rgba(3,213,250,1)) no-repeat rgba(255,255,255,.8);
+                background-size: 0% 100%;
+              }
+
+              // .load-progress {
+              //   position: absolute;
+              //   top: 0;
+              //   left: 0;
+              //   width: 100%;
+              //   height: 4px;
+              //   border-radius: 2px;
+              //   z-index: 1;
+              //   background: linear-gradient(rgba(255,255,255,.8),rgba(255,255,255,.8)) no-repeat rgba(255,255,255,.2);
+              //   background-size: 0% 100%;
+              // }
+            }
+          }
+
+          .delete {
+            width: 48px;
+            margin-left: 32px;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            i {
+              color: #888;
+              font-size: 12px;
+            }
+          }
+        }
       }
+    }
+
+    .no-file {
+      text-align: center;
     }
 
     button {
