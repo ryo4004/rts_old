@@ -18,7 +18,7 @@
       padding: 0 16px;
 
       display: flex;
-      align-items: center;  
+      align-items: center;
 
       h2 {
         color: #333;
@@ -39,10 +39,42 @@
   }
 
   .status {
+    min-height: calc(100vh - 4em - 90px - 1px);
     padding: 2em 0;
 
     // 030 Happy Fisher
     background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+
+    .prepare {
+
+      .data-channel-status {
+        text-align: center;
+        font-size: 14px;
+
+        & > div {
+          display: inline-block;
+          color: #fff;
+
+          label {
+            padding: 2px 6px 2px 2px;
+            border-radius: 0 8px 8px 0;
+          }
+
+          span {
+            padding: 2px 2px 2px 6px;
+            border-radius: 8px 0 0 8px;
+          }
+
+          &.ok label, &.ok span {
+            background: #3880ff;
+          }
+
+          &.ng label, &.ng span {
+            background: #f04141;
+          }
+        }
+      }
+    }
 
     .file-input {
       // margin: 32px auto;
@@ -73,131 +105,228 @@
         input.file {
           display: none;
         }
-      }  
+      }
     }
 
     ul.receive-file-list {
-      width: 80vw;
+      width: 95vw;
       max-width: 600px;
       margin: 0 auto;
       padding: 0;
       list-style: none;
 
       li {
-        margin: 8px auto;
-        padding: 0 32px 24px;
-        border-radius: 8px;
-        background: rgba(255,255,255,.5);
-        cursor: default;
-        transition: background-color .2s ease-in-out 0s;
+        &.receive-filelist {
+          margin: 8px auto;
+          padding: 0 24px 24px;
+          border-radius: 8px;
+          background: rgba(255,255,255,.5);
+          cursor: default;
+          transition: background-color .2s ease-in-out 0s;
 
-        &:hover {
-          background: rgba(255,255,255,.6);
-        }
-
-        .receive-status {
-          text-align: right;
-          font-size: 12px;
-          height: 24px;
-
-          span {
-            display: inline-block;
-            padding: 2px 6px;
-            background: rgba(0,0,0,.1);
+          &:hover {
+            background: rgba(255,255,255,.6);
           }
-        }
 
-        .receive-info {
-          display: flex;
+          .receive-status {
+            text-align: right;
+            font-size: 12px;
+            height: 24px;
 
-          .file-icon {
-            width: 48px;
-            margin-right: 32px;
+            span {
+              display: inline-block;
+              padding: 2px 6px;
+              color: #333;
+              background: rgba(0,0,0,.1);
+            }
 
+            &.complete span {
+              color: #fff;
+              background: rgba(56,128,255,.6);
+            }
+
+            &.failed span {
+              color: #fff;
+              background: rgba(240,65,65,.6);
+            }
+          }
+
+          .receive-info {
             display: flex;
-            justify-content: center;
-            align-items: center;
 
-            i {
-              color: #888;
-              font-size: 32px;
+            .file-icon {
+              width: 48px;
+              margin-right: 24px;
+
+              display: flex;
+              justify-content: center;
+              align-items: center;
+
+              i {
+                color: #888;
+                font-size: 32px;
+              }
+
+              .receive-percent {
+                position: absolute;
+                margin: 0;
+                padding: 0 4px;
+                border-radius: 10px;
+                // font-family: fira-mono,monospace;
+                // font-family: source-code-pro, monospace;
+                font-family: ocr-b-std, monospace;
+                font-size: 12px;
+                text-align: right;
+                background: rgba(255,255,0,.8);
+
+                &.standby {
+                  opacity: 0;
+                }
+
+                &.receiving {
+                  // transition: all .1s ease-in-out 0s;
+                }
+
+                &.complete {
+                  opacity: 0;
+                  background: rgba(255,255,255,.8);
+                  transition: all 2s ease-in-out 0s;
+                }
+              }
             }
- 
-            .receive-percent {
-              position: absolute;
-              margin: 0;
-              padding: 0 4px;
-              border-radius: 10px;
-              // font-family: fira-mono,monospace;
-              // font-family: source-code-pro, monospace;
-              font-family: ocr-b-std, monospace;
-              font-size: 12px;
-              text-align: right;
-              background: rgba(255,255,0,.8);
 
-              &.standby {
-                opacity: 0;
+            .detail {
+              flex: 1;
+
+              .file-name {
+                font-size: 14px;
+                // font-family: "Hiragino Kaku Gothic ProN","メイリオ", sans-serif;
+                // font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", YuGothic, "ヒラギノ角ゴ ProN W3", Hiragino Kaku Gothic ProN, Arial, "メイリオ", Meiryo, sans-serif;
+                // font-family: ocr-b-std, monospace;
+                font-family: "Noto Sans JP",sans-serif;
+                line-height: 16px;
+                word-break: break-all;
+
+                // 受信完了前
+                span {
+                  color: #888;
+                }
+
+                a {
+                  color: #333;
+                  text-decoration: none;
+
+                  &:hover {
+                    text-decoration: underline;
+                  }
+                }
               }
 
-              &.receiving {
-                // transition: all .1s ease-in-out 0s;
+              .receive-size {
+                margin: 8px 0 0 0;
+                padding: 0;
+                font-family: ocr-b-std, monospace;
+                font-size: 12px;
+                color: #888;
+                line-height: 14px;
               }
 
-              &.complete {
-                opacity: 0;
-                background: rgba(255,255,255,.8);
-                transition: all 2s ease-in-out 0s;
+              .receive-progress-bar {
+                position: relative;
+                margin: 0;
+                padding: 0;
+
+                &.standby {
+                  opacity: 0;
+                }
+
+                &.receiving {
+                  // transition: all .1s ease-in-out 0s;
+                }
+
+                &.complete {
+                  opacity: 0;
+                  background: rgba(255,255,255,.8);
+                  transition: all .5s ease-in-out 0s;
+                }
+
+                .receive-progress {
+                  position: absolute;
+                  top: 0;
+                  left: 0;
+                  width: 100%;
+                  height: 4px;
+                  border-radius: 2px;
+                  z-index: 2;
+                  background: linear-gradient(rgba(3,213,250,1),rgba(3,213,250,1)) no-repeat rgba(255,255,255,.8);
+                  background-size: 0% 100%;
+                }
+              }
+            }
+          }
+        }
+
+        &.receive-filelist.complete {
+          padding: 0;
+
+          &:hover {
+            background: rgba(255,255,255,.8);
+          }
+
+          a {
+            display: block;
+            padding: 0 24px 24px;
+            color: #333;
+            text-decoration: none;
+
+            &:hover .detail .file-name {
+              text-decoration: underline;
+            }
+          }
+        }
+
+        // 削除済みファイル
+        &.receive-filelist.deleted {
+          margin: 8px auto;
+          padding: 0 24px 24px;
+          border-radius: 8px;
+          background: rgba(255,255,255,.2);
+          cursor: default;
+          transition: background-color .6s ease-in-out 0s;
+
+          &:hover {
+            background: rgba(255,255,255,.2);
+          }
+
+          .receive-status {
+            color: #000;
+
+            & > span {
+              background: rgba(255,255,255,.2);
+              cursor: default;
+
+              &:hover {
+                background: rgba(255,255,255,.2);
               }
             }
           }
 
+          .receive-info {
+            .file-icon {
+              i {
+                color: rgba(0,0,0,.1);
+                transition: color .6s ease-in-out 0s;
+              }
+            }
+          }
           .detail {
-            flex: 1;
-
             .file-name {
-              font-size: 14px;
-              font-family: "Hiragino Kaku Gothic ProN","メイリオ", sans-serif;
-            }
-
-            .receive-size {
-              margin: 0;
-              padding: 0;
-              font-family: ocr-b-std, monospace;
-              font-size: 12px;
               color: #888;
-              // text-align: right;
+              transition: color .6s ease-in-out 0s;
             }
-
-            .receive-progress-bar {
-              position: relative;
-              margin: 0;
-              padding: 0;
-
-              &.standby {
-                opacity: 0;
-              }
-
-              &.receiving {
-                // transition: all .1s ease-in-out 0s;
-              }
-
-              &.complete {
-                opacity: 0;
-                background: rgba(255,255,255,.8);
-                transition: all .5s ease-in-out 0s;
-              }
-              
-              .receive-progress {
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 4px;
-                border-radius: 2px;
-                z-index: 2;
-                background: linear-gradient(rgba(3,213,250,1),rgba(3,213,250,1)) no-repeat rgba(255,255,255,.8);
-                background-size: 0% 100%;
-              }
+            .receive-size {
+              color: #aaa;
+              transition: color .6s ease-in-out 0s;
             }
           }
         }

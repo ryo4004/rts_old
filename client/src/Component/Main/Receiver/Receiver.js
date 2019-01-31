@@ -24,13 +24,15 @@ function mapStateToProps(state) {
     receiveFileList: state.receiver.receiveFileList,
     receiveFileStorage: state.receiver.receiveFileStorage,
 
+    dataChannelOpenStatus: state.receiver.dataChannelOpenStatus,
+
     fileAPI: state.status.fileAPI,
     available: state.status.available,
 
-    receivedDataInfo: state.receiver.receivedDataInfo,
-    receivedDataCount: state.receiver.receivedDataCount,
+    // receivedDataInfo: state.receiver.receivedDataInfo,
+    // receivedDataCount: state.receiver.receivedDataCount,
     receiveFileUrlList: state.receiver.receiveFileUrlList,
-    receivedFileUrl: state.receiver.receivedFileUrl
+    // receivedFileUrl: state.receiver.receivedFileUrl
   }
 }
 
@@ -93,10 +95,11 @@ class Receiver extends Component {
     const senderID = this.props.senderID ? this.props.senderID : '-'
     return (
       <div className='prepare'>
-        <div>status: {available}</div>
+        {/* <div>status: {available}</div>
         <div>socketid: {socketID}</div>
         <div>selfID: {selfID}</div>
-        <div>senderID: {senderID}</div>
+        <div>senderID: {senderID}</div> */}
+        <div className='data-channel-status'><div className={this.props.dataChannelOpenStatus ? 'ok' : 'ng'}><span>{this.props.dataChannelOpenStatus ? <i className='fas fa-check-circle'></i> : <i className='fas fa-times-circle'></i>}</span><label>dataChannel</label></div></div>
       </div>
     )
   }
@@ -106,31 +109,44 @@ class Receiver extends Component {
     // console.warn('render', this.props.receiveFileList)
     const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
       const each = this.props.receiveFileList[id]
+      const icon = <i className={fileIcon(each.name, each.type)}></i>
+      const fileSize = fileSizeUnit(each.size)
       if (each.delete) return (
-        <li key={'filelist-' + i}>
+        <li key={'filelist-' + i} className='receive-filelist deleted'>
           <div className='receive-status'><span>取り消されました</span></div>
           <div className='receive-info'>
+            <div className='file-icon'>{icon}</div>
             <div className='detail'>
               <div className='file-name'>{each.name}</div>
+              <div className='receive-size'>{fileSize}</div>
             </div>
           </div>
         </li>
       )
 
+      if (this.props.receiveFileUrlList[each.id] && each.receiveResult) {
+        return (
+          <li key={'filelist-' + i} className='receive-filelist complete'>
+            <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>
+              <div className='receive-status complete'><span>完了</span></div>
+              <div className='receive-info'>
+                <div className='file-icon'>{icon}</div>
+                <div className='detail'>
+                  <div className='file-name'>{each.name}</div>
+                  <div className='receive-size'>{fileSize}</div>
+                </div>
+              </div>
+            </a>
+          </li>
+        )
+      }
+  
+      const status = each.receive === false ? <span>未受信</span> : each.receive !== 100 ? <span>受信中</span> : (each.receiveComplete === false ? <span>処理中</span> : (each.receiveResult ? <span>完了</span> : <span>受信失敗</span>))
+      
+      const statusClass = each.receive === false ? 'not-receive' : each.receive !== 100 ? 'receiving' : (each.receiveComplete === false ? 'wait-response' : (each.receiveResult ? 'complete' : 'failed'))
+      // const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
       const receivePercent = each.receive === false ? <div className='receive-percent standby'>{each.receive + '%'}</div> : (each.receive !== 100 ? <div className='receive-percent receiving'>{(each.receive).toFixed(1) + '%'}</div> : <div className='receive-percent complete'>{each.receive + '%'}</div>)
       const receiveProgress = each.receive ? {backgroundSize: each.receive + '% 100%'} : {backgroundSize: '0% 100%'}
-
-      const status = each.receive === false ? <span>未受信</span> : each.receive !== 100 ? <span>受信中</span> : <span>完了</span>
-
-      const icon = <i className={fileIcon(each.name, each.type)}></i>
-
-      // const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
-      const fileSize = fileSizeUnit(each.size)
-
-      // const download = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>download</a> : 'download'
-
-      const name = this.props.receiveFileUrlList[each.id] ? <a href={this.props.receiveFileUrlList[each.id]} download={each.name}>{each.name}</a> : each.name
-
       const progressBar = () => {
         return (
           <div className={'receive-progress-bar' + (each.receive === false ? ' standby' : (each.receive !== 100 ? ' receiving' : ' complete'))}>
@@ -140,12 +156,12 @@ class Receiver extends Component {
       }
 
       return (
-        <li key={'filelist-' + i}>
-          <div className='receive-status'>{status}</div>
+        <li key={'filelist-' + i} className='receive-filelist'>
+          <div className={'receive-status' + ' ' + statusClass}>{status}</div>
           <div className='receive-info'>
             <div className='file-icon'>{icon}{receivePercent}</div>
             <div className='detail'>
-              <div className='file-name'>{name}</div>
+              <div className='file-name'><span>{each.name}</span></div>
               <div className='receive-size'>{fileSize}</div>
               {progressBar()}
             </div>
@@ -156,23 +172,23 @@ class Receiver extends Component {
     return <div><ul className='receive-file-list'>{receiveFileList}</ul></div>
   }
 
-  renderReceivedInfo () {
-    if (!this.props.receivedDataInfo) return
-    return (
-      <div>
-        <span>{this.props.receivedDataCount}</span>/<span>{this.props.receivedDataInfo.size.sendTotal}</span>
-      </div>
-    )
-  }
+  // renderReceivedInfo () {
+  //   if (!this.props.receivedDataInfo) return
+  //   return (
+  //     <div>
+  //       <span>{this.props.receivedDataCount}</span>/<span>{this.props.receivedDataInfo.size.sendTotal}</span>
+  //     </div>
+  //   )
+  // }
 
-  renderReceivedFileDownload () {
-    if (!this.props.receivedFileUrl) return
-    return (
-      <div>
-        <a href={this.props.receivedFileUrl} download>Download</a>
-      </div>
-    )
-  }
+  // renderReceivedFileDownload () {
+  //   if (!this.props.receivedFileUrl) return
+  //   return (
+  //     <div>
+  //       <a href={this.props.receivedFileUrl} download>Download</a>
+  //     </div>
+  //   )
+  // }
 
   render () {
     // State List
@@ -183,8 +199,8 @@ class Receiver extends Component {
 
     const prepare = this.renderPrepare()
     const fileList = this.renderFileList()
-    const receivedInfo = this.renderReceivedInfo()
-    const receivedFileDownload = this.renderReceivedFileDownload()
+    // const receivedInfo = this.renderReceivedInfo()
+    // const receivedFileDownload = this.renderReceivedFileDownload()
     
     return (
       <div className={'receiver' + mobileMode}>
@@ -195,14 +211,14 @@ class Receiver extends Component {
         </header>
         <div className='status'>
           {prepare}
-          {receivedInfo}
+          {/* {receivedInfo} */}
           <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
             <label className='file'>ファイルを準備
               <input type='file' className='file' />
             </label>
             {fileList}
           </div>
-          {receivedFileDownload}
+          {/* {receivedFileDownload} */}
         </div>
       </div>
     )

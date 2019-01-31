@@ -13,6 +13,60 @@ let idLength = 16
 let flagLength = 1
 let packetSize = 1024 * 16 - flagLength - idLength
 
+// // // IndexedDB
+// let db = null
+// const dbName = 'storageDB'
+
+// const dbRequest = indexedDB.open(dbName)
+// dbRequest.onupgradeneeded = function(event){
+//   //onupgradeneededは、DBのバージョン更新(DBの新規作成も含む)時のみ実行
+//   console.log('db upgrade', event)
+//   // db = event.target.result
+//   // const objectStore = db.createObjectStore('data', { keyPath: 'id'})
+//   // console.log('objectStore', objectStore)
+//   // objectStore.createIndex("id", "id", { unique: true })
+//   // objectStore.createIndex("name", "name", { unique: false })
+//   // objectStore.transaction.oncomplete = function(event) {
+//   //   // 新たに作成した objectStore に値を保存します。
+//   //   const customerObjectStore = db.transaction("name", "readwrite").objectStore("name");
+//   //   customerObjectStore.add(insertData)
+//   // };
+// }
+// dbRequest.onsuccess = function(event){
+//   //onupgradeneededの後に実行。更新がない場合はこれだけ実行
+//   console.log('db open success', event)
+//   db = event.target.result
+//   // 接続を解除する
+//   // db.close()
+// }
+// dbRequest.onerror = function(event){
+//   // 接続に失敗
+//   console.log('db open error', event);
+// }
+
+
+// dbRequest.onsuccess = function(event){
+//   var db = event.target.result
+//   var trans = db.transaction(storeName, 'readwrite')
+//   var store = trans.objectStore(storeName)
+//   var putReq = store.put(insertData)
+
+//   putReq.onsuccess = function(){
+//     console.log('put data success');
+//   }
+
+//   trans.oncomplete = function(){
+//   // トランザクション完了時(putReq.onsuccessの後)に実行
+//     console.log('transaction complete');
+//   }
+// }
+
+
+
+
+
+
+
 const loading = (loading) => ({
   type: prefix + 'LOADING',
   payload: { loading }
@@ -170,14 +224,9 @@ function createReceiveFile (id, dispatch, getState) {
   const receiveFileInfo = getState().receiver.receiveFileList[id]
   const packets = getState().receiver.receiveFileStorage[id].packets
 
-  let receiveResult
-  if (receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime) {
-    console.log('送信回数一致')    
-    receiveResult = true
-  } else {
-    console.log('送信回数不一致')
-    receiveResult = false
-  }
+  const receiveResult = receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? true : false
+  updateReceiveFileList(id, 'receiveComplete', true, dispatch, getState)
+  updateReceiveFileList(id, 'receiveResult', receiveResult, dispatch, getState)
 
   // 受信完了通知を送る
   let receiveComplete = {
@@ -189,6 +238,7 @@ function createReceiveFile (id, dispatch, getState) {
   dataChannel.send(JSON.stringify(receiveComplete))
 
   console.log('受信したファイル', receiveFileInfo)
+  receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致')
 
   // const reducer = (accumulator, currentValue) => accumulator + currentValue
   // let length = packets.reduce((accumulator, currentValue) => {
@@ -200,6 +250,36 @@ function createReceiveFile (id, dispatch, getState) {
   //   data.set(packet.slice(flagLength + idLength), pos)
   //   pos += packet.length - flagLength - idLength
   // })
+
+  // // IndexedDB (よくわからなくて使うのやめた)
+  // let db
+  // const dbName = id
+
+  // const dbRequest = indexedDB.open(dbName)
+  // dbRequest.onupgradeneeded = function(event){
+  //   console.log('db upgrade', event)
+  //   // db = event.target.result
+  //   const objectStore = db.createObjectStore(id, { keyPath: 'number'})
+  //   objectStore.oncomplete = function() {
+  //     packets.forEach((packet, i) => {
+  //       const transaction = db.transaction([id], 'readwrite')
+  //       transaction.oncomplete = function() { console.log('complete') }
+  //       transaction.onerror = function(err) { console.log('error', err) }
+  //       const store = transaction.objectStore(id)
+  //       const req = store.put({number: i, data: packet, timeStamp: Date.now()})
+  //     })
+  //   }
+  // }
+  // dbRequest.onsuccess = function(event){
+  //   console.log('db open success', event)
+  //   db = event.target.result
+  //   // 接続を解除する
+  //   // db.close()
+  // }
+  // dbRequest.onerror = function(event){
+  //   // 接続に失敗
+  //   console.log('db open error', event);
+  // }
 
   let fileArray = []
 
@@ -216,7 +296,7 @@ function createReceiveFile (id, dispatch, getState) {
   //     console.log(fileEntry)
   //   }, (error) => {
   //     console.log('error init', error)
-  //   })  
+  //   })
   // }, (error) => {
   //   console.log('error', error)
   // })
@@ -249,7 +329,7 @@ function dataReceive (event, dispatch, getState) {
       // 受信ファイル一覧を取得
       // addプロパティを外す
       const receiveFileList = JSON.parse(event.data).add
-      console.log('受信ファイルリストに追加', receiveFileList)
+      console.warn('受信ファイルリストに追加', receiveFileList)
       Object.assign(receiveFileList, getState().receiver.receiveFileList)
       dispatch(setReceiveFileList(receiveFileList))
       return
@@ -268,11 +348,12 @@ function dataReceive (event, dispatch, getState) {
       console.time('receiveTotal' + startReceive.id)
       console.time('receiveFile' + startReceive.id)
       console.warn('ファイル受信開始', getState().receiver.receiveFileList[startReceive.id])
-      updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)
-      updateReceiveFileList(startReceive.id, 'rest', startReceive.size.rest, dispatch, getState)
-      updateReceiveFileList(startReceive.id, 'sendTime', startReceive.size.sendTime, dispatch, getState)
-      updateReceiveFileList(startReceive.id, 'preReceiveInfo', true, dispatch, getState)
       resetReceiveFileStorage(startReceive.id, dispatch, getState)
+      // これはもう受信済み
+      // updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)
+      // updateReceiveFileList(startReceive.id, 'rest', startReceive.size.rest, dispatch, getState)
+      // updateReceiveFileList(startReceive.id, 'sendTime', startReceive.size.sendTime, dispatch, getState)
+      updateReceiveFileList(startReceive.id, 'preReceiveInfo', true, dispatch, getState)
 
       // receiveFileInfoは上書き
       return // dispatch(setReceiveFileInfo(receiveData))
