@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 
 import { connect } from 'react-redux'
 
+import { confirmAlert } from 'react-confirm-alert'
+
 import { addFile, connectSocket, sendData, sendFile, deleteFile } from '../../../Actions/Sender'
 
 import { fileSizeUnit, fileIcon } from '../../../Library/Library'
@@ -79,26 +81,52 @@ class Sender extends Component {
   }
 
   fileSelect (e) {
-    console.warn('fileSelect', e.target.files)
+    console.log('fileSelect', e.target.files)
     this.props.addFile(e.target.files)
   }
 
-  renderPrepare () {
+  renderTutorial() {
+    const selfID = this.props.selfID ? this.props.selfID : false
+    const url = selfID ? 'https://' + location.host + '/' + selfID : 'generating...'
+    const qrCode = selfID ? <img className='qr-code' src={'https://chart.apis.google.com/chart?cht=qr&chs=150x150&chl=' + url} /> : false
+    return (
+      <div className='tutorial'>
+        <h3>これはなに？</h3>
+        <p>
+          WebRTCを利用したファイル転送サービスです。
+          WebRTCはユーザー同士によるP2P接続により直接データのやりとりが行えることができます。
+          P2P接続では直接データのやりとりを行うためセキュアに通信することができます。
+          Web上に送信したデータが残ることはありません。
+          双方がページを開いている間だけデータの送受信ができます。
+        </p>
+        <h3>免責事項</h3>
+        <p>
+          このサービスを利用して発生したいかなる損害にも責任を負いません。
+        </p>
+        <h3>使い方</h3>
+        <ol>
+          <li>共有URLをファイルを受け取る相手に通知します</li>
+          <li>自動的に相手との間にP2P接続を試みます</li>
+          <li>相手との間に接続が確立するとdataChannelマークが<i className='fas fa-check-circle'></i>になります</li>
+          <li>ファイルを追加してから送信ボタンを押すとファイルを送信できます</li>
+        </ol>
+        <div className='url'><span>共有URL</span><a href={url} target='_blank'>{url}</a><button onClick={(e) => this.copy(e, url)} className='copy-button'><i className='fas fa-clone'></i></button></div>
+        {qrCode}
+      </div>
+    )
+  }
+
+  renderStatus () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketID = this.props.socket ? this.props.socket.id : '-'
     const selfID = this.props.selfID ? this.props.selfID : '-'
     const receiverID = this.props.receiverID ? this.props.receiverID : '-'
-    const url = 'https://' + location.host + '/' + selfID
-    // const url = 'https://rts.zatsuzen.com/' + selfID
-    console.warn()
     return (
-      <div className='prepare'>
+      <div className='status'>
         {/* <div>status: {available}</div>
         <div>socketID: {socketID}</div>
         <div>selfID: {selfID}</div>
         <div>receiverID: {receiverID}</div> */}
-        <div className='url'><a href={url} target='_blank'>{url}</a></div>
-        <button onClick={(e) => this.copy(e, url)} className='copy-button'><i className='fas fa-clone'></i></button>
         <div className='data-channel-status'><div className={this.props.dataChannelOpenStatus ? 'ok' : 'ng'}><span>{this.props.dataChannelOpenStatus ? <i className='fas fa-check-circle'></i> : <i className='fas fa-times-circle'></i>}</span><label>dataChannel</label></div></div>
       </div>
     )
@@ -113,6 +141,27 @@ class Sender extends Component {
     document.getSelection().selectAllChildren(div)
     document.execCommand("copy")
     document.body.removeChild(div)
+  }
+
+  deleteConfirm (id) {
+    confirmAlert({
+      customUI: ({ onClose }) => {
+        return (
+          <div className='alert'>
+            <h1>削除しますか？</h1>
+            <p>送信済みファイルの場合は相手側のダウンロードもできなくなります</p>
+            <div className='button-group'>
+              <button onClick={onClose}>キャンセル</button>
+              <button onClick={() => {
+                this.props.deleteFile(id)
+                // Actions.toastShow('ログアウトしました')
+                onClose()
+              }}>削除</button>
+            </div>
+          </div>
+        )
+      }
+    })
   }
 
   renderFileList () {
@@ -154,7 +203,7 @@ class Sender extends Component {
 
       return (
         <li key={'filelist-' + i} className='send-filelist'>
-          <div className={'send-status' + ' ' + statusClass} onClick={() => this.props.deleteFile(each.id)}><span>{status}<span className='delete'><i className='fas fa-times'></i></span></span></div>
+          <div className={'send-status' + ' ' + statusClass}><span onClick={() => this.deleteConfirm(each.id)}>{status}<span className='delete'><i className='fas fa-times'></i></span></span></div>
           <div className='send-info'>
             <div className='file-icon'>{icon}{sendPercent}</div>
             <div className='detail'>
@@ -170,14 +219,17 @@ class Sender extends Component {
     return <div><ul className='send-file-list'>{sendFileList}</ul></div>
   }
 
-  // renderSentInfo () {
-  //   if (!this.props.sentDataInfo) return
-  //   return (
-  //     <div>
-  //       <span>{this.props.sentDataCount}</span>/<span>{this.props.sentDataInfo.size.sendTotal}</span>
-  //     </div>
-  //   )
-  // }
+  renderSendButton () {
+    // if (!this.props.sendFileList || Object.keys(this.props.sendFileList).length === 0) return 'ファイルがない'
+    let buttonClass = ' disable'
+    // ひとつでも送信処理未完了のものがあれば有効
+    Object.keys(this.props.sendFileList).map((id, i) => {
+      // if (this.props.sendFileList[id].receiveComplete === false) {
+      if (this.props.sendFileList[id].send === false) { buttonClass = ' true' }
+    })
+    if (!this.props.dataChannelOpenStatus) { buttonClass = ' disable' }
+    return <button className={'send-button' + buttonClass} onClick={() => this.props.sendData()}>送信</button>
+  }
 
   render () {
     // console.log('render')
@@ -187,28 +239,32 @@ class Sender extends Component {
     // const { logout } = this.props
     const mobileMode = mobile ? ' mobile' : ' pc'
 
-    const prepare = this.renderPrepare()
+    const tutorial = this.renderTutorial()
+    const status = this.renderStatus()
     const fileList = this.renderFileList()
     // const sentInfo = this.renderSentInfo()
+
+    const sendButton = this.renderSendButton()
 
     return (
       <div className={'home' + mobileMode}>
         <header>
           <div>
-            <h2><Link to='/'>RTS</Link></h2>
+            <h2><Link to='/'>Real-Time File Sharing</Link></h2>
           </div>
         </header>
-        <div className='status'>
-          {prepare}
+        <div className='main'>
+          {tutorial}
+          {status}
           <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
             <label className='file'>共有するファイルを追加
               <input type='file' className='file' onChange={(e) => this.fileSelect(e)} multiple value='' />
             </label>
-            <button className='test' onClick={() => this.props.sendData()}>送信</button>
-            {fileList}
             {/* {sentInfo} */}
             {/* <button className='test' onClick={() => this.props.sendFile()}>ファイル送信</button> */}
           </div>
+          {sendButton}
+          {fileList}
           {/* <button className='standby'></button> */}
         </div>
       </div>

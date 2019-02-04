@@ -98,7 +98,7 @@ const getSocketID = (id) => {
 // 接続処理
 io.on('connection', (socket) => {
   // URL用ID作成
-  const id = lib.randomString()  
+  const id = lib.shuffle(lib.randomString())
   // console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
   const reg = { status: 'connection', socketid: socket.client.id, id }
   statusDB.insert(reg, (err, newdoc) => {
@@ -136,7 +136,7 @@ io.on('connection', (socket) => {
     const toSocket = await getSocketID(obj.to)
     io.to(toSocket).emit('send_offer_sdp', obj)
   })
-  
+
   // Sender send answer SDP
   socket.on('send_answer_sdp', async (obj) => {
     console.log('(socket)[' + lib.showTime() + '] send_answer_sdp')

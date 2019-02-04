@@ -61,12 +61,6 @@ let packetSize = 1024 * 16 - flagLength - idLength
 //   }
 // }
 
-
-
-
-
-
-
 const loading = (loading) => ({
   type: prefix + 'LOADING',
   payload: { loading }
@@ -98,12 +92,11 @@ export const connectSocket = (senderID) => {
     })
     // 受信
     socket.on('send_answer_sdp', async (obj) => {
-      console.warn('AnserSDP', obj)
       await peerConnection.setRemoteDescription(new RTCSessionDescription(obj.sdp))
     })
     // 受信
     socket.on('send_found_candidate', async (obj) => {
-      console.warn('経路受信')
+      console.log('onicecandidate found')
       await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
     dispatch(setSocket(socket))
@@ -118,39 +111,39 @@ async function connectPeerConnection (socket, obj, dispatch, getState) {
     iceTransportPolicy: 'all'
   })
   dataChannel = peerConnection.createDataChannel(
-    'label',
+    'dataChannel',
     {
       ordered: true
     }
   )
   dataChannel.onopen = () => {
     dispatch(dataChannelOpenStatus(true))
-    console.warn('DataChannel Standby')
+    console.log('DataChannel onopen')
   }
   dataChannel.onclose = () => {
     dispatch(dataChannelOpenStatus(false))
-    console.warn('DataChannel onclose')
+    console.log('DataChannel onclose')
   }
   dataChannel.onerror = () => {
     dispatch(dataChannelOpenStatus(false))
-    console.warn('DataChannel onerror')
+    console.log('DataChannel onerror')
   }
 
   // 受信データ形式を明示(ブラウザ間差異のため)
   dataChannel.binaryType = 'arraybuffer'
 
-  console.warn('label', dataChannel.label)
-  console.warn('ordered', dataChannel.ordered)
-  console.warn('protocol', dataChannel.protocol)
-  console.warn('id', dataChannel.id)
-  console.warn('readyState', dataChannel.readyState)
-  console.warn('bufferedAmount', dataChannel.bufferedAmount)
-  console.warn('binaryType', dataChannel.binaryType)
-  console.warn('maxPacketLifeType', dataChannel.maxPacketLifeType)
-  console.warn('maxRetransmits', dataChannel.maxRetransmits)
-  console.warn('negotiated', dataChannel.negotiated)
-  console.warn('reliable', dataChannel.reliable)
-  console.warn('stream', dataChannel.stream)
+  // console.log('label', dataChannel.label)
+  // console.log('ordered', dataChannel.ordered)
+  // console.log('protocol', dataChannel.protocol)
+  // console.log('id', dataChannel.id)
+  // console.log('readyState', dataChannel.readyState)
+  // console.log('bufferedAmount', dataChannel.bufferedAmount)
+  // console.log('binaryType', dataChannel.binaryType)
+  // console.log('maxPacketLifeType', dataChannel.maxPacketLifeType)
+  // console.log('maxRetransmits', dataChannel.maxRetransmits)
+  // console.log('negotiated', dataChannel.negotiated)
+  // console.log('reliable', dataChannel.reliable)
+  // console.log('stream', dataChannel.stream)
 
   // 受信時の処理
   dataChannel.onmessage = (event) => {
@@ -158,7 +151,7 @@ async function connectPeerConnection (socket, obj, dispatch, getState) {
   }
   peerConnection.onicecandidate = (event) => {
     if (event.candidate) {
-      console.warn('経路発見')
+      console.log('onicecandidate')
       socket.emit('send_found_candidate', {
         selfType: 'Receiver',
         to: senderID,
@@ -170,7 +163,6 @@ async function connectPeerConnection (socket, obj, dispatch, getState) {
     }
   }
   let offerSdp = await peerConnection.createOffer()
-  console.warn('offerSdp', offerSdp)
   await peerConnection.setLocalDescription(offerSdp)
 
   // senderにRequestを送る
@@ -203,7 +195,6 @@ function updateReceiveFileInfo (property, value, dispatch, getState) {
 }
 
 function resetReceiveFileStorage (id, dispatch, getState) {
-  console.warn('reset Storage', id)
   const receiveFileStorage = {}
   receiveFileStorage[id] = { packets: [] }
   Object.assign(receiveFileStorage, getState().receiver.receiveFileStorage)
@@ -237,7 +228,7 @@ function createReceiveFile (id, dispatch, getState) {
   }
   dataChannel.send(JSON.stringify(receiveComplete))
 
-  console.log('受信したファイル', receiveFileInfo)
+  console.log('受信完了')
   receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致')
 
   // const reducer = (accumulator, currentValue) => accumulator + currentValue
@@ -287,7 +278,7 @@ function createReceiveFile (id, dispatch, getState) {
     fileArray.push(packet.slice(flagLength + idLength))
   })
 
-  // console.warn(packets, fileArray)
+  // console.log(packets, fileArray)
 
   // FileSystemは非推奨らしい
   // window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem
@@ -308,7 +299,6 @@ function createReceiveFile (id, dispatch, getState) {
     type: receiveFileInfo.type,
     lastModified: receiveFileInfo.lastModified
   })
-  console.log(file)
 
   const receiveFileUrlList = { [id]: window.URL.createObjectURL(file) }
   Object.assign(receiveFileUrlList, getState().receiver.receiveFileUrlList)
@@ -316,8 +306,7 @@ function createReceiveFile (id, dispatch, getState) {
 
   // 受信データ一時置き場をリセットする
   resetReceiveFileStorage(id, dispatch, getState)
-  // dispatch(setReceiveFileInfo(undefined))
-  console.timeEnd('receiveTotal' + id)
+  // console.timeEnd('receiveTotal' + id)
 }
 
 // データ受信
@@ -329,7 +318,7 @@ function dataReceive (event, dispatch, getState) {
       // 受信ファイル一覧を取得
       // addプロパティを外す
       const receiveFileList = JSON.parse(event.data).add
-      console.warn('受信ファイルリストに追加', receiveFileList)
+      console.log('受信ファイルリストに追加')
       Object.assign(receiveFileList, getState().receiver.receiveFileList)
       dispatch(setReceiveFileList(receiveFileList))
       return
@@ -337,7 +326,6 @@ function dataReceive (event, dispatch, getState) {
       // ファイル削除通知
       // deleteプロパティを外す
       const deleteReceive = JSON.parse(event.data).delete
-      console.time('delete id' + deleteReceive.id)
       updateReceiveFileList(deleteReceive.id, 'delete', true, dispatch, getState)
       resetReceiveFileStorage(deleteReceive.id, dispatch, getState)
       return
@@ -345,9 +333,9 @@ function dataReceive (event, dispatch, getState) {
       // ファイル受信開始
       // startプロパティを外す
       const startReceive = JSON.parse(event.data).start
-      console.time('receiveTotal' + startReceive.id)
-      console.time('receiveFile' + startReceive.id)
-      console.warn('ファイル受信開始', getState().receiver.receiveFileList[startReceive.id])
+      // console.time('receiveTotal' + startReceive.id)
+      // console.time('receiveFile' + startReceive.id)
+      console.log('ファイル受信開始')
       resetReceiveFileStorage(startReceive.id, dispatch, getState)
       // これはもう受信済み
       // updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)
@@ -361,14 +349,14 @@ function dataReceive (event, dispatch, getState) {
       // ファイル受信完了
       // endプロパティを外す
       const endReceive = JSON.parse(event.data).end
-      console.timeEnd('receiveFile' + endReceive.id)
-      console.warn('ファイル受信完了', getState().receiver.receiveFileList[endReceive.id].name)
+      // console.timeEnd('receiveFile' + endReceive.id)
+      console.log('ファイル受信完了')
       createReceiveFile(endReceive.id, dispatch, getState)
       updateReceiveFileList(endReceive.id, 'receive', 100, dispatch, getState)
       return
     }
   }
-  // ファイル本体受信(ファイル情報ではない)
+  // ファイル本体受信
   const receiveData = new Uint8Array(event.data)
   const id = bufferToString(receiveData.slice(flagLength, flagLength + idLength))
   const receiveFileInfo = getState().receiver.receiveFileList[id]

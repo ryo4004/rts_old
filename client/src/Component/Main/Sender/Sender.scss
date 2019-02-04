@@ -31,6 +31,7 @@
 
     & > div {
       max-width: 940px;
+      height: 90px;
       margin: 0 auto;
       padding: 0 16px;
 
@@ -38,6 +39,8 @@
       align-items: center;
 
       h2 {
+        margin: 0;
+        padding: 0;
         color: #333;
         font-size: 1.2rem;
         font-weight: normal;
@@ -55,51 +58,110 @@
     }
   }
 
-  .status {
+  .main {
     min-height: calc(100vh - 4em - 90px - 1px);
     padding: 2em 0;
 
     // 030 Happy Fisher
     background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
 
-    .prepare {
-      width: 80vw;
+
+    .tutorial {
+      width: 95vw;
       max-width: 600px;
-      margin: 0 auto;
+      margin: 0 auto 24px;
+      padding: 24px;
+      border-radius: 8px;
+      background: rgba(255,255,255,.5);
+      box-sizing: border-box;
+
+      h3 {
+        margin: 0 0 8px;
+        padding: 0;
+        font-size: 16px;
+        font-weight: normal;
+      }
+
+      p {
+        font-size: 14px;
+        color: #333;
+      }
+
+      ol {
+        margin: 0;
+        padding: 0;
+
+        li {
+          font-size: 14px;
+          color: #333;
+        }
+      }
 
       .url {
+        margin-top: 24px;
         font-size: 14px;
 
+        span {
+          display: inline-block;
+          padding: 2px 8px 2px 6px;
+          border-radius: 8px 0 0 8px;
+          background: rgba(0,0,0,.1);
+        }
+
         a {
+          display: inline-block;
+          padding: 2px 6px;
           color: #333;
           text-decoration: none;
 
           &:hover {
+            background: rgba(0,0,0,.1);
             text-decoration: underline;
+          }
+        }
+
+        .copy-button {
+          display: inline-block;
+          height: 26px;
+          margin: 0;
+          padding: 2px 8px;
+          border-radius: 0 8px 8px 0;
+          background: inherit;
+          color: #666;
+
+          &:hover {
+            background: rgba(0,0,0,.1);
+          }
+
+          &:active {
+            background: rgba(0,0,0,.2);
+          }
+
+          i {
+            font-size: 14px;
           }
         }
       }
 
-      .copy-button {
-        padding: 2px 6px;
+      img.qr-code {
+        display: block;
+        margin-top: 24px;
         border-radius: 8px;
-        background: #eee;
-        color: #666;
-
-        &:hover {
-          background: #ddd;
-        }
-
-        &:active {
-          background: #ccc;
-        }
-
-        i {
-          font-size: 14px;
-        }
       }
+    }
+
+
+    .status {
+      width: 95vw;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,.5);
 
       .data-channel-status {
+        margin: 0 24px;
+        padding: 24px 0;
         text-align: center;
         font-size: 14px;
 
@@ -136,17 +198,19 @@
         width: 80vw;
         max-width: 500px;
         margin: 32px auto;
-        padding: 8px 16px;
+        padding: 8px 0;
         border: 2px solid #fff;
         border-radius: 20px;
         // 084 Phoenix Start
         background: rgba(255,255,255,0);
         // background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
         color: #fff;
+        font-size: 16px;
         font-weight: bold;
         cursor: pointer;
         text-align: center;
         transition: all .1s ease-in-out;
+        box-sizing: border-box;
 
         &:hover {
           // 102 Happy Memories
@@ -160,6 +224,48 @@
       }
     }
 
+    button.send-button {
+      display: block;
+      width: 80vw;
+      max-width: 500px;
+      margin: 32px auto;
+      padding: 8px 0;
+      border: 2px solid #fff;
+      border-radius: 20px;
+      background: rgba(255,255,255,0);
+      // 084 Phoenix Start
+      // background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
+      // 102 Happy Memories
+      background-image: linear-gradient(-60deg, #ff5858 0%, #f09819 100%);
+
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      text-align: center;
+      transition: all .2s ease-in-out;
+      box-sizing: border-box;
+
+      &:hover {
+        // background: rgba(255,255,255,.1);
+        // 102 Happy Memories
+        // background-image: linear-gradient(-60deg, #ff5858 0%, #f09819 100%);
+        color: #eee;
+      }
+
+      &.disable {
+        border-color: rgba(255,255,255,.6);
+        background: rgba(255,255,255,0);
+        color: rgba(255,255,255,.6);
+        cursor: default;
+
+        &:hover {
+          background: rgba(255,255,255,0);
+          color: rgba(255,255,255,.6);
+        }
+      }
+    }
+
     ul.send-file-list {
       width: 95vw;
       max-width: 600px;
@@ -168,6 +274,9 @@
       list-style: none;
 
       li {
+        -webkit-animation: fadein .2s 1 ease;
+        animation: fadein .2s 1 ease;
+
         &.send-filelist {
           margin: 8px auto;
           padding: 0 24px 24px;
@@ -287,7 +396,7 @@
               }
 
               .send-size {
-                margin: 8px 0 0 0;
+                margin: 2px 0 0 0;
                 padding: 0;
                 font-family: ocr-b-std, monospace;
                 font-size: 12px;
@@ -406,7 +515,12 @@
     }
 
     .no-file {
+      font-size: 14px;
       text-align: center;
+
+      p {
+        margin: 0;
+      }
     }
 
     button {
@@ -416,12 +530,6 @@
       padding: 0;
       border: 0;
       cursor: pointer;
-    }
-
-    button.test {
-      display: block;
-      padding: 2px 8px;
-      margin: 2em auto;
     }
 
     button.standby {

@@ -75,14 +75,15 @@ div {
   justify-content: center;
   -ms-align-items: center;
   align-items: center;
-  /* opacity: 1; */
+  -webkit-animation: fadein .1s 1 ease-out;
+  animation: fadein .1s 1 ease-out;
 }
 
 .react-confirm-alert-body {
   width: 270px;
   padding: 0;
   background: #fcfcfc;
-  border-radius: 2px;
+  border-radius: 8px;
   color: #000;
 
   & > h1 {
@@ -98,7 +99,7 @@ div {
   display: flex;
   justify-content: flex-start;
   margin: 0;
-  border-top: 1px solid #dbdbdf;
+  border-top: .55px solid #dbdbdf;
 
   & > button {
     display: inline-block;
@@ -112,24 +113,27 @@ div {
     cursor: pointer;
     outline: none;
     &:first-child {
-      border-right: 1px solid #dbdbdf;
-      border-radius: 0 0 0 2px;
+      border-right: .55px solid #dbdbdf;
+      border-radius: 0 0 0 8px;
       color: #488aff;
       font-weight: 600;
     }
     &:last-child {
-      border-radius: 0 0 2px 0;
+      border-radius: 0 0 8px 0;
       color: #f53d3d;
     }
   }
 }
+
 .react-confirm-alert {
+  -webkit-animation: fadein .2s 1 ease-out;
+  animation: fadein .2s 1 ease-out;
 
   .alert {
     width: 270px;
     padding: 0;
     background: #f8f8f8;
-    border-radius: 2px;
+    border-radius: 8px;
     color: #000;
 
     & > h1 {
@@ -151,7 +155,7 @@ div {
       display: flex;
       justify-content: flex-start;
       margin: 0;
-      border-top: 1px solid #dbdbdf;
+      border-top: .55px solid #dbdbdf;
 
       & > button {
         display: inline-block;
@@ -165,13 +169,13 @@ div {
         cursor: pointer;
         outline: none;
         &:first-child {
-          border-right: 1px solid #dbdbdf;
-          border-radius: 0 0 0 2px;
+          border-right: .55px solid #dbdbdf;
+          border-radius: 0 0 0 8px;
           color: #488aff;
           font-weight: 600;
         }
         &:last-child {
-          border-radius: 0 0 2px 0;
+          border-radius: 0 0 8px 0;
           color: #f53d3d;
         }
         &:hover {
@@ -180,6 +184,11 @@ div {
       }
     }
   }
+}
+
+// よくわからないけどsvgが表示されてしまうのでその対策
+svg#react-confirm-alert-firm-svg {
+  display: none;
 }
 
 .full-loading {

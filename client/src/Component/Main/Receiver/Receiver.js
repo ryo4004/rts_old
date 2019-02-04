@@ -88,13 +88,13 @@ class Receiver extends Component {
   //   this.render()
   // }
 
-  renderPrepare () {
+  renderStatus () {
     const available = this.props.available === true ? 'OK' : 'NG'
     const socketID = this.props.socket ? this.props.socket.id : '-'
     const selfID = this.props.selfID ? this.props.selfID : '-'
     const senderID = this.props.senderID ? this.props.senderID : '-'
     return (
-      <div className='prepare'>
+      <div className='status'>
         {/* <div>status: {available}</div>
         <div>socketid: {socketID}</div>
         <div>selfID: {selfID}</div>
@@ -105,12 +105,14 @@ class Receiver extends Component {
   }
 
   renderFileList () {
-    if (!this.props.receiveFileList || Object.keys(this.props.receiveFileList).length === 0) return <div>追加してください</div>
+    if (!this.props.receiveFileList || Object.keys(this.props.receiveFileList).length === 0) return <div className='no-file'><p>まだファイルがありません</p><p>相手がファイルを追加するとここに表示されます</p></div>
     // console.warn('render', this.props.receiveFileList)
     const receiveFileList = Object.keys(this.props.receiveFileList).map((id, i) => {
       const each = this.props.receiveFileList[id]
       const icon = <i className={fileIcon(each.name, each.type)}></i>
       const fileSize = fileSizeUnit(each.size)
+
+      // 削除されたとき
       if (each.delete) return (
         <li key={'filelist-' + i} className='receive-filelist deleted'>
           <div className='receive-status'><span>取り消されました</span></div>
@@ -124,6 +126,7 @@ class Receiver extends Component {
         </li>
       )
 
+      // 受信完了後
       if (this.props.receiveFileUrlList[each.id] && each.receiveResult) {
         return (
           <li key={'filelist-' + i} className='receive-filelist complete'>
@@ -197,7 +200,7 @@ class Receiver extends Component {
     // const { logout } = this.props
     const mobileMode = mobile ? ' mobile' : ' pc'
 
-    const prepare = this.renderPrepare()
+    const status = this.renderStatus()
     const fileList = this.renderFileList()
     // const receivedInfo = this.renderReceivedInfo()
     // const receivedFileDownload = this.renderReceivedFileDownload()
@@ -206,18 +209,19 @@ class Receiver extends Component {
       <div className={'receiver' + mobileMode}>
         <header>
           <div>
-            <h2><Link to='/'>RTS</Link></h2>
+            <h2><Link to='/'>Real-Time File Sharing</Link></h2>
           </div>
         </header>
-        <div className='status'>
-          {prepare}
+        <div className='main'>
+          {status}
           {/* {receivedInfo} */}
-          <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} >
-            <label className='file'>ファイルを準備
+          {/* <div className='file-input' onDragOver={(e) => this.onDragover(e)} onDrop={(e) => this.onDrop(e)} > */}
+          <div className='file-input'>
+            {/* <label className='file'>ファイルを準備
               <input type='file' className='file' />
-            </label>
-            {fileList}
+            </label> */}
           </div>
+          {fileList}
           {/* {receivedFileDownload} */}
         </div>
       </div>

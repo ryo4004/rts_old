@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <meta name="format-detection" content="telephone=no">
   <meta name="msapplication-tap-highlight" content="no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="#ffffff">
-  <meta name="apple-mobile-web-app-title" content="RTS">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="Zatsuzen Blog">
-  <title>RTS</title>
+  <meta name="apple-mobile-web-app-title" content="RTFS">
+  <meta name="theme-color" content="#66a6ff">
+  <meta name="description" content="WebRTC(dataChannel)を利用したファイル共有サービスです。リアルタイムでファイルの転送ができます。">
+  <meta name="google-site-verification" content="oznZhbrjWxS_qcU9dcsLK25WLV6SUQBQuBb_SXRBdH4" />
+  <title>Real-Time File Sharing</title>
   <link rel="manifest" href="manifest.json">
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="https://zatsuzen.com/apple-touch-icon.png">
   <!-- <link rel="icon" type="image/png" href="android-chrome.png"> -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/babel-polyfill/7.0.0/polyfill.min.js" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css" integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" crossorigin="anonymous">
   <link rel="stylesheet" href="https://use.typekit.net/sst8vcw.css">
   <link href="https://fonts.googleapis.com/css?family=Noto+Sans+JP" rel="stylesheet">
 </head>
@@ -33,14 +33,16 @@
     window.addEventListener('load', () => {
       if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').then((registration) => {}).catch((err) => {})
     })
-    
-    // window.requestFileSystem(type, size, successCallback, opt_errorCallback)
-    // window.webkitRequestFileSystem(window.TEMPORARY, 5*1024*1024, (fs) => { console.log('Opened file system: ', fs.name, fs) }, (error) => { console.error(error) })
-
     window.addEventListener('unhandledrejection', reason => {
-      // document.getElementById('error').innerHTML(reason)
       console.error('Unhandled Rejection', reason)
     })
+  </script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-125178607-2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || []
+    function gtag(){dataLayer.push(arguments)}
+    gtag('js', new Date())
+    gtag('config', 'UA-125178607-2')
   </script>
 </body>
 </html>

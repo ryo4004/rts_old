@@ -130,19 +130,16 @@ export const deleteFile = (id) => {
         }
       }
       dataChannel.send(JSON.stringify(deleteFileInfo))
-      console.log('削除通知送信', deleteFileInfo)
     }
-    console.log('ファイル削除', id, deleteFileList)
+    console.log('ファイル削除')
     updateSendFileList(id, 'delete', true, dispatch, getState)
   }
 }
 
 function sendFileListOnDataChannel (dispatch, getState) {
   if (getState().sender.dataChannelOpenStatus) {
-    console.log('getState', getState(), getState().sender, getState().sender.sendFileList)
     const sendFileList = getState().sender.sendFileList
     Object.keys(sendFileList).reverse().forEach((num) => {
-      // console.warn('preSendInfo未送信確認', num, sendFileList[num])
       const id = sendFileList[num].id
       if (!sendFileList[num].preSendInfo) {
         const sendFileInfo = {
@@ -160,7 +157,7 @@ function sendFileListOnDataChannel (dispatch, getState) {
         sendFileInfo.add[id].receive = false
         sendFileInfo.add[id].preReceiveInfo = false
         sendFileInfo.add[id].receivePacketCount = 0
-        console.warn('preSendInfo', sendFileInfo.add[id], JSON.stringify(sendFileInfo))
+        console.log('preSendInfo')
         dataChannel.send(JSON.stringify(sendFileInfo))
         updateSendFileList(id, 'preSendInfo', true, dispatch, getState)
       }
@@ -194,13 +191,10 @@ export const connectSocket = () => {
     })
     // 受信 Receiver情報を取得
     socket.on('request_to_sender', (obj) => {
-      // console.warn('Receiver id', obj)
       dispatch(setReceiverID(obj.from))
     })
     // 受信
     socket.on('send_offer_sdp', async (obj) => {
-      // console.warn('OfferSdp', obj)
-
       // PeerConnection作成
       peerConnection = new RTCPeerConnection({
         iceServers: [{ urls: 'stun:stun.l.google.com:19302'}],
@@ -209,25 +203,18 @@ export const connectSocket = () => {
       peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel
         dataChannel.onopen = () => {
-          console.warn('DataChannel onopen')
+          console.log('DataChannel onopen')
           dispatch(dataChannelOpenStatus(true))
-          // ファイルリストを送信
-          // console.log('getState', getState(), getState().sender, getState().sender.sendFileList)
-          // const sendFileList = getState().sender.sendFileList
-          // Object.keys(sendFileList).forEach((num) => {
-          //   console.warn('preSendInfo未送信確認', num, sendFileList[num])
-          //   if (!sendFileList[num].preSendInfo) {
+          // 未送信のファイルリストを確認して送信
           sendFileListOnDataChannel(dispatch, getState)
-          //   }
-          // })
         }
         dataChannel.onclose = () => {
           dispatch(dataChannelOpenStatus(false))
-          console.warn('DataChannel onclose')
+          console.log('DataChannel onclose')
         }
         dataChannel.onerror = () => {
           dispatch(dataChannelOpenStatus(false))
-          console.warn('DataChannel onerror')
+          console.log('DataChannel onerror')
         }
         dataChannel.onmessage = (event) => {
           dataReceive(event, dispatch, getState)
@@ -238,15 +225,15 @@ export const connectSocket = () => {
         switch (peerConnection.iceConnectionState) {
           case 'closed':
             if (dataChannel) dataChannel.close()
-            console.warn('peerConnection closed', dataChannel.readyState)
+            console.log('peerConnection closed', dataChannel.readyState)
           case 'failed':
             if (dataChannel) dataChannel.close()
-            console.warn('peerConnection failed', dataChannel.readyState)
+            console.log('peerConnection failed', dataChannel.readyState)
           case 'disconnected':
             if (dataChannel) dataChannel.close()
-            console.warn('peerConnection disconnected', dataChannel.readyState)
+            console.log('peerConnection disconnected', dataChannel.readyState)
           default:
-            console.warn('peerConnection default', peerConnection.iceConnectionState)
+            console.log('peerConnection default', peerConnection.iceConnectionState)
         }
       }
       peerConnection.onicegatheringstatechange = (event) => {
@@ -254,7 +241,7 @@ export const connectSocket = () => {
       }
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-          console.warn('経路発見')
+          console.log('onicecandidate')
           getState().sender.socket.emit('send_found_candidate', {
             selfType: 'Sender',
             to: getState().sender.receiverID,
@@ -275,7 +262,7 @@ export const connectSocket = () => {
       })
     })
     socket.on('send_found_candidate', async (obj) => {
-      console.warn('経路受信')
+      console.log('onicecandidate found')
       await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
   }
@@ -297,8 +284,8 @@ function dataReceive (event, dispatch, getState) {
     if (JSON.parse(event.data).receiveComplete !== undefined) {
       const receiveComplete = JSON.parse(event.data).receiveComplete
       // 受信完了通知
-      console.warn('受信完了通知', (receiveComplete ? '成功' : '失敗'))
-      console.timeEnd('sendFileTotal' + receiveComplete.id)
+      console.log('受信完了通知', (receiveComplete ? '成功' : '失敗'))
+      // console.timeEnd('sendFileTotal' + receiveComplete.id)
       updateSendFileList(receiveComplete.id, 'receiveComplete', true, dispatch, getState)
       updateSendFileList(receiveComplete.id, 'receiveResult', receiveComplete.result, dispatch, getState)
     }
@@ -327,7 +314,6 @@ const dataChannelOpenStatus = (dataChannelOpenStatus) => ({
 
 export const sendData = () => {
   return (dispatch, getState) => {
-    console.log('DataChannel送信')
     if (!getState().sender.dataChannelOpenStatus) return console.error('Data Channel not open')
     const sendFileList = Object.assign({}, getState().sender.sendFileList)
     if (Object.keys(sendFileList).length === 0) return console.error('Send file not found')
@@ -342,15 +328,15 @@ export const sendData = () => {
     sendList.reverse().forEach((id) => {
       sendFileData(id, dispatch, getState)
     })
-    if (sendList.length === 0) console.error('送るファイルはありません', sendList)
+    // if (sendList.length === 0) console.error('送るファイルはありません', sendList)
   }
 }
 
 function openSendFile (id, fileInfo, dispatch, getState) {
   if (!getState().sender.dataChannelOpenStatus) {
-    return console.error('dataChannel error')
+    return console.error('dataChannel not open')
   }
-  console.time('sendTotal' + id)
+  // console.time('sendTotal' + id)
   // FileReaderの設定
   let fileReader = new FileReader()
   fileReader.onloadstart = (event) => {
@@ -482,7 +468,7 @@ function openSendFile (id, fileInfo, dispatch, getState) {
 
 // ファイルを分割して読み込む
 function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
-  console.time('sendFileTotal' + id)
+  // console.time('sendFileTotal' + id)
 
   const file = fileInfo.file
 
@@ -495,20 +481,18 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
       id: id
     }
   }
-  console.log('直前ファイル情報送信', startFileInfo)
-  console.time('sendFile' + id)
+  console.log('ファイル送信準備')
+  // console.time('sendFile' + id)
   dataChannel.send(JSON.stringify(startFileInfo))
 
   let start = 0
   let sendPacketCount = 0
 
   function openSend () {
-
     if (getState().sender.sendFileList[id].delete) {
-      console.error('削除されたため中断', id)
+      console.log('削除されたため中断', id)
       return
     }
-
     if (!(start < file.size)) {
       const endFileInfo = {
         end: {
@@ -517,31 +501,28 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
       }
       dataChannel.send(JSON.stringify(endFileInfo))
       updateSendFileList(id, 'send', 100, dispatch, getState)
-      console.timeEnd('sendFile' + id)
-      console.log('DataChannelファイル送信完了')
+      // console.timeEnd('sendFile' + id)
+      console.log('ファイル送信完了')
       return
     }
     let end = start + packetSize
-
     const fs = new FileReader()
     fs.onloadend = (event) => {
       if (event.target.readyState == FileReader.DONE) {
+        // 送信するpacketの準備
         let packetData = event.target.result
         let packet = new Uint8Array(packetData.byteLength + flagLength + idLength)
         packet[0] = (end >= file.size ? 1 : 0)
         packet.set(fileInfo.idBuffer, flagLength)
         packet.set(new Uint8Array(packetData), flagLength + idLength)
-
-        console.log('ファイル送信中', dataChannel.bufferedAmount)
-
-        while (dataChannel.bufferedAmount > 0) {}
-
+        // Chrome待機用(不要になったかも)
+        // while (dataChannel.bufferedAmount > 0) {}
         // 送信および状態更新
         dataChannel.send(packet)
         updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
-
         sendPacketCount++
         start = end
+        console.log('ファイル送信中')
         setTimeout(openSend())
       }
     }
@@ -552,57 +533,20 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
 }
 
 function sendFileData (id, dispatch, getState) {
-  console.log('データ送信処理開始', id)
-  // ファイル情報を送信
+  console.log('ファイル送信処理開始')
+
+  // ファイル情報を取得
   const sendFileList = Object.assign({}, getState().sender.sendFileList)
 
-  // ファイル読み込み
-  console.warn('ファイル読み込み', sendFileList)
+  // 削除されたファイルは何もしない(二重確認)
+  if (sendFileList.delete) return false
 
-  if (sendFileList.delete) {
-    console.log('このファイルは削除済み', sendFileList)
-    return false
-  }
+  console.warn(peerConnection)
+  console.warn(dataChannel)
 
+  // 送信方法を選択
   // return openSendFile(id, sendFileList[id], dispatch, getState)
   return sliceOpenSendFile(id, sendFileList[id], dispatch, getState)
-  // const fileInfo = sendFileList[id]
-  // const sendInfo = {
-  //   sendFileInfo: {
-  //     id: id,
-  //     size: {
-  //       byteLength: fileInfo.byteLength,
-  //       sendTime: fileInfo.sendTime,
-  //       rest: fileInfo.rest
-  //     },
-  //     file: {
-  //       lastModified: fileInfo.lastModified,
-  //       name: fileInfo.name,
-  //       size: fileInfo.size,
-  //       type: fileInfo.type,
-  //       webkitRelativePath: fileInfo.webkitRelativePath
-  //     }
-  //   }
-  // }
-  // dispatch(setSendFileInfo(sendInfo))
-  // dataChannel.send(JSON.stringify(sendInfo))
-
-  // const worker = new Worker(window.URL.createObjectURL(scriptBlob))
-
-  // console.warn('worker', worker)
-
-  // const data = getState().sender.sendFileStorage[id]
-  // worker.postMessage([data, dataChannel, fileInfo])
-  // worker.onmessage = (e, id, dispatch, getState) => {
-  //   updateSendFileList(id, 'send', e.data, dispatch, getState)
-  //   console.log('worker runs', e)
-  // }
-
-  // ファイルをpacketとして送信
-  // let percent
-
-  // const data = getState().sender.sendFileStorage[id]
-
 }
 
 export const sendFile = () => {
@@ -615,10 +559,10 @@ export const sendFile = () => {
     // fileReader.onloadend = (event) => { console.log('fileReader onloadend', event) }
     // fileReader.onprogress = (event) => { console.log('fileReader onprogress', event.loaded + '/' + event.total) }
     // fileReader.onload = (event) => {
-    //   console.warn('DataChannelファイル送信開始', getState().sender.fileList[0])
+    //   console.log('DataChannelファイル送信開始', getState().sender.fileList[0])
     //   let data = new Uint8Array(event.target.result)
     //   console.log('バイト数: ' + data.byteLength, '送信回数: ' + Math.ceil(data.byteLength / packetSize), '余り: ' + (data.byteLength % packetSize))
-    //   console.warn('sendData', data)
+    //   console.log('sendData', data)
     //   const sendInfo = {
     //     size: {
     //       total: data.byteLength,
@@ -636,18 +580,18 @@ export const sendFile = () => {
 
     //   dispatch(setSentDataInfo(sendInfo))
     //   dataChannel.send(JSON.stringify(sendInfo))
-    //   console.warn('label', dataChannel.label)
-    //   console.warn('ordered', dataChannel.ordered)
-    //   console.warn('protocol', dataChannel.protocol)
-    //   console.warn('id', dataChannel.id)
-    //   console.warn('readyState', dataChannel.readyState)
-    //   console.warn('bufferedAmount', dataChannel.bufferedAmount)
-    //   console.warn('binaryType', dataChannel.binaryType)
-    //   console.warn('maxPacketLifeType', dataChannel.maxPacketLifeType)
-    //   console.warn('maxRetransmits', dataChannel.maxRetransmits)
-    //   console.warn('negotiated', dataChannel.negotiated)
-    //   console.warn('reliable', dataChannel.reliable)
-    //   console.warn('stream', dataChannel.stream)
+    //   console.log('label', dataChannel.label)
+    //   console.log('ordered', dataChannel.ordered)
+    //   console.log('protocol', dataChannel.protocol)
+    //   console.log('id', dataChannel.id)
+    //   console.log('readyState', dataChannel.readyState)
+    //   console.log('bufferedAmount', dataChannel.bufferedAmount)
+    //   console.log('binaryType', dataChannel.binaryType)
+    //   console.log('maxPacketLifeType', dataChannel.maxPacketLifeType)
+    //   console.log('maxRetransmits', dataChannel.maxRetransmits)
+    //   console.log('negotiated', dataChannel.negotiated)
+    //   console.log('reliable', dataChannel.reliable)
+    //   console.log('stream', dataChannel.stream)
 
     //   const userAgent = window.navigator.userAgent.toLowerCase()
     //   if(userAgent.indexOf('msie') != -1 || userAgent.indexOf('trident') != -1) {
@@ -702,16 +646,6 @@ export const sendFile = () => {
   }
 }
 
-// const setSendFileInfo = (sendFileInfo) => ({
-//   type: prefix + 'SET_SEND_FILE_INFO',
-//   payload: { sendFileInfo }
-// })
-
-// const setSendPacketCount = (sendPacketCount) => ({
-//   type: prefix + 'SET_SEND_PACKET_COUNT',
-//   payload: { sendPacketCount }
-// })
-
 // WebWorkerのテスト
 // const scriptBlob = new Blob(['(',
 // function () {
@@ -754,3 +688,14 @@ export const sendFile = () => {
 // }.toString(),
 // ')()'
 // ], { type: 'application/javascript' })
+
+  // const worker = new Worker(window.URL.createObjectURL(scriptBlob))
+
+  // console.log('worker', worker)
+
+  // const data = getState().sender.sendFileStorage[id]
+  // worker.postMessage([data, dataChannel, fileInfo])
+  // worker.onmessage = (e, id, dispatch, getState) => {
+  //   updateSendFileList(id, 'send', e.data, dispatch, getState)
+  //   console.log('worker runs', e)
+  // }

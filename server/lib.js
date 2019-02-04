@@ -26,7 +26,7 @@ function getRandomString (length) {
 function randomString () {
   const character = 'abcdefghijklmnopqrstuvwxyz0123456789'
   let id = ''
-  for (var i=0; i<8; i++) { id += character[Math.floor(Math.random()*character.length)] }
+  for (let i=0;i<4;i++) { id += character[Math.floor(Math.random()*character.length)] }
   return uniqid.time() + id
 }
 
@@ -46,6 +46,18 @@ function showTime () {
   return time.getFullYear() + '/' + (time.getMonth() + 1) + '/' + time.getDate() + ' ' + z(time.getHours()) + ':' + z(time.getMinutes()) + ':' + z(time.getSeconds())
 }
 
+function shuffle (string) {
+  let ary = string.split('')
+  let i = ary.length
+  while(i > 0){
+    let j = Math.floor(Math.random()*i)
+    let t = ary[--i]
+    ary[i] = ary[j]
+    ary[j] = t
+  }
+  return ary.join('')
+}
+
 module.exports = {
-  getHash, getAuthToken, getUniqueString, getRandomString, randomString, escapeReg, showTime
+  getHash, getAuthToken, getUniqueString, getRandomString, randomString, escapeReg, showTime, shuffle
 }

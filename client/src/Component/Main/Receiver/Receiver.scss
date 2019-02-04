@@ -14,6 +14,7 @@
 
     & > div {
       max-width: 940px;
+      height: 90px;
       margin: 0 auto;
       padding: 0 16px;
 
@@ -21,6 +22,8 @@
       align-items: center;
 
       h2 {
+        margin: 0;
+        padding: 0;
         color: #333;
         font-size: 1.2rem;
         font-weight: normal;
@@ -38,16 +41,24 @@
     }
   }
 
-  .status {
+  .main {
     min-height: calc(100vh - 4em - 90px - 1px);
     padding: 2em 0;
 
     // 030 Happy Fisher
     background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
 
-    .prepare {
+    .status {
+      width: 95vw;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 0;
+      border-radius: 8px;
+      background: rgba(255,255,255,.5);
 
       .data-channel-status {
+        margin: 0 24px;
+        padding: 24px 0;
         text-align: center;
         font-size: 14px;
 
@@ -108,6 +119,15 @@
       }
     }
 
+    .no-file {
+      margin: 24px 0;
+
+      p {
+        margin: 0;
+        padding: 0;
+      }
+    }
+
     ul.receive-file-list {
       width: 95vw;
       max-width: 600px;
@@ -116,6 +136,9 @@
       list-style: none;
 
       li {
+        -webkit-animation: fadein .2s 1 ease;
+        animation: fadein .2s 1 ease;
+
         &.receive-filelist {
           margin: 8px auto;
           padding: 0 24px 24px;
@@ -223,7 +246,7 @@
               }
 
               .receive-size {
-                margin: 8px 0 0 0;
+                margin: 2px 0 0 0;
                 padding: 0;
                 font-family: ocr-b-std, monospace;
                 font-size: 12px;
@@ -330,6 +353,15 @@
             }
           }
         }
+      }
+    }
+
+    .no-file {
+      font-size: 14px;
+      text-align: center;
+
+      p {
+        margin: 0;
       }
     }
 
