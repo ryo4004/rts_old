@@ -44,6 +44,15 @@ div {
   outline: none;
 }
 
+button {
+  outline: none;
+  appearance: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: pointer;
+}
+
 // 演奏会リストの表示に使用
 @-webkit-keyframes fadein {
   0% {

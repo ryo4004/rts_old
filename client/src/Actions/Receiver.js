@@ -1,10 +1,10 @@
 import socketio from 'socket.io-client'
 
 import { bufferToString } from '../Library/Library'
-const prefix = 'RECEIVER_'
 
-let peerConnection
-let dataChannel
+import { sendDataChannel } from './Connection'
+
+const prefix = 'RECEIVER_'
 
 // 定数
 // ファイルIDは16文字
@@ -66,113 +66,6 @@ const loading = (loading) => ({
   payload: { loading }
 })
 
-export const connectSocket = (senderID) => {
-  return async (dispatch, getState) => {
-    dispatch(loading(true))
-    dispatch(setSenderID(senderID))
-    // Socket接続
-    const socket = await socketio.connect('https://' + location.host + '/', {secure: true})
-    // const socket = socketio.connect('https://rts.zatsuzen.com', {secure: true})
-    socket.on('connect', () => {
-      dispatch(setSocket(socket))
-    })
-    // connection_complete で自分のIDを取得
-    socket.on('connection_complete', async (obj) => {
-      dispatch(loading(false))
-      dispatch(setSelfID(obj.id))
-      // senderにRequestを送る(IDを通知)
-      socket.emit('request_to_sender', {
-        from: obj.id,
-        to: senderID
-      })
-
-      // peerConnectionを作成
-      connectPeerConnection(socket, obj, dispatch, getState)
-
-    })
-    // 受信
-    socket.on('send_answer_sdp', async (obj) => {
-      await peerConnection.setRemoteDescription(new RTCSessionDescription(obj.sdp))
-    })
-    // 受信
-    socket.on('send_found_candidate', async (obj) => {
-      console.log('onicecandidate found')
-      await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
-    })
-    dispatch(setSocket(socket))
-  }
-}
-
-async function connectPeerConnection (socket, obj, dispatch, getState) {
-  const senderID = getState().receiver.senderID
-  // PeerConnection作成
-  peerConnection = new RTCPeerConnection({
-    iceServers: [{ urls: 'stun:stun.l.google.com:19302'}],
-    iceTransportPolicy: 'all'
-  })
-  dataChannel = peerConnection.createDataChannel(
-    'dataChannel',
-    {
-      ordered: true
-    }
-  )
-  dataChannel.onopen = () => {
-    dispatch(dataChannelOpenStatus(true))
-    console.log('DataChannel onopen')
-  }
-  dataChannel.onclose = () => {
-    dispatch(dataChannelOpenStatus(false))
-    console.log('DataChannel onclose')
-  }
-  dataChannel.onerror = () => {
-    dispatch(dataChannelOpenStatus(false))
-    console.log('DataChannel onerror')
-  }
-
-  // 受信データ形式を明示(ブラウザ間差異のため)
-  dataChannel.binaryType = 'arraybuffer'
-
-  // console.log('label', dataChannel.label)
-  // console.log('ordered', dataChannel.ordered)
-  // console.log('protocol', dataChannel.protocol)
-  // console.log('id', dataChannel.id)
-  // console.log('readyState', dataChannel.readyState)
-  // console.log('bufferedAmount', dataChannel.bufferedAmount)
-  // console.log('binaryType', dataChannel.binaryType)
-  // console.log('maxPacketLifeType', dataChannel.maxPacketLifeType)
-  // console.log('maxRetransmits', dataChannel.maxRetransmits)
-  // console.log('negotiated', dataChannel.negotiated)
-  // console.log('reliable', dataChannel.reliable)
-  // console.log('stream', dataChannel.stream)
-
-  // 受信時の処理
-  dataChannel.onmessage = (event) => {
-    dataReceive(event, dispatch, getState)
-  }
-  peerConnection.onicecandidate = (event) => {
-    if (event.candidate) {
-      console.log('onicecandidate')
-      socket.emit('send_found_candidate', {
-        selfType: 'Receiver',
-        to: senderID,
-        from: obj.id,
-        candidate: event.candidate
-      })
-    } else {
-      // event.candidateが空の場合は終了
-    }
-  }
-  let offerSdp = await peerConnection.createOffer()
-  await peerConnection.setLocalDescription(offerSdp)
-
-  // senderにRequestを送る
-  socket.emit('send_offer_sdp', {
-    to: senderID,
-    type: 'offer',
-    sdp: offerSdp
-  })
-}
-
 const setReceiveFileList = (receiveFileList) => ({
   type: prefix + 'SET_RECEIVE_FILE_LIST',
   payload: { receiveFileList }
@@ -196,11 +89,10 @@ function updateReceiveFileInfo (property, value, dispatch, getState) {
 
 function resetReceiveFileStorage (id, dispatch, getState) {
   const receiveFileStorage = {}
-  receiveFileStorage[id] = { packets: [] }
   Object.assign(receiveFileStorage, getState().receiver.receiveFileStorage)
+  receiveFileStorage[id] = { packets: [] }
   dispatch(setReceiveFileStorage(receiveFileStorage))
 }
-
 
 function updateReceiveFileStorage (id, value, dispatch, getState) {
   // JSON.parse(JSON.stringify())は使わない
@@ -221,15 +113,16 @@ function createReceiveFile (id, dispatch, getState) {
 
   // 受信完了通知を送る
   let receiveComplete = {
+    to: 'sender',
     receiveComplete: {
       id: id,
       result: receiveResult
     }
   }
-  dataChannel.send(JSON.stringify(receiveComplete))
+  sendDataChannel(JSON.stringify(receiveComplete))
 
   console.log('受信完了')
-  receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致')
+  receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致', receiveFileInfo.receivePacketCount, receiveFileInfo.sendTime)
 
   // const reducer = (accumulator, currentValue) => accumulator + currentValue
   // let length = packets.reduce((accumulator, currentValue) => {
@@ -310,8 +203,7 @@ function createReceiveFile (id, dispatch, getState) {
 }
 
 // データ受信
-function dataReceive (event, dispatch, getState) {
-  // console.log('DataChannel受信', event)
+export function receiverReceiveData (event, dispatch, getState) {
   if (typeof(event.data) === 'string') {
     // オブジェクトのプロパティによって処理判定
     if (JSON.parse(event.data).add !== undefined) {
@@ -367,34 +259,9 @@ function dataReceive (event, dispatch, getState) {
   return console.log('データ受信中')
 }
 
-const setSocket = (socket) => ({
-  type: prefix + 'SET_SOCKET',
-  payload: { socket }
-})
-
-const setSelfID = (selfID) => ({
-  type: prefix + 'SET_SELF_ID',
-  payload: { selfID }
-})
-
-const setSenderID = (senderID) => ({
-  type: prefix + 'SET_SENDER_ID',
-  payload: { senderID }
-})
-
-const dataChannelOpenStatus = (dataChannelOpenStatus) => ({
-  type: prefix + 'DATACHANNEL_OPEN_STATUS',
-  payload: { dataChannelOpenStatus }
-})
-
 const setReceiveFileUrlList = (receiveFileUrlList) => ({
   type: prefix + 'SET_RECEIVE_FILE_URL_LIST',
   payload: { receiveFileUrlList }
-})
-
-const setReceivedFileUrl = (receivedFileUrl) => ({
-  type: prefix + 'SET_RECEIVED_FILE_URL',
-  payload: { receivedFileUrl }
 })
 
 const setReceiveFileStorage = (receiveFileStorage) => ({

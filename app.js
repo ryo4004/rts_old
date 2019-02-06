@@ -127,7 +127,12 @@ io.on('connection', (socket) => {
     const toSocket = await getSocketID(obj.to)
     // console.log('from: ', fromSocket)
     console.log('to: ', toSocket)
-    io.to(toSocket).emit('request_to_sender', obj)
+    if (toSocket) {
+      io.to(toSocket).emit('request_to_sender', obj)
+    } else {
+      const fromSocket = await getSocketID(obj.from)
+      io.to(fromSocket).emit('request_to_sender_error', { error: 'not_found' })
+    }
   })
 
   // Reciever send offer SDP

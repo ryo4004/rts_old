@@ -4,8 +4,12 @@ import { Route, Switch } from 'react-router-dom'
 import { connect } from 'react-redux'
 import { windowWidthChange } from '../../Actions/Status'
 
+import { addFile } from '../../Actions/Sender'
+
 import Sender from './Sender/Sender'
 import Receiver from './Receiver/Receiver'
+
+import './Main.css'
 
 function mapStateToProps(state) {
   return {
@@ -19,6 +23,9 @@ function mapDispatchToProps(dispatch) {
     windowWidthChange () {
       dispatch(windowWidthChange())
     },
+    addFile (fileList) {
+      dispatch(addFile(fileList))
+    }
   }
 }
 
@@ -43,15 +50,27 @@ class Main extends Component {
     window.removeEventListener('resize', () => {})
   }
 
+  onDragOver (e) {
+    e.preventDefault()
+  }
+
+  onDrop (e) {
+    e.preventDefault()
+    if (e.dataTransfer.files.length === 0) return false
+    this.props.addFile(e.dataTransfer.files)
+  }
+
   render () {
     const { mobile, location } = this.props
     const mobileMode = mobile ? ' mobile' : ' pc'
     // console.log('location',location)
     // if (loading) return <div className='full-loading'><div className="loading"><div className="loading1"></div><div className="loading2"></div><div className="loading3"></div></div></div>
     return (
-      <div className={'contents' + mobileMode} ref={this.contents}>
+      <div className={'contents' + mobileMode} ref={this.contents} onDragOver={(e) => this.onDragOver(e)} onDrop={(e) => this.onDrop(e)}>
+        <div className='drop-frame'>
+        </div>
         <Switch>
-          <Route path='/:senderID' component={Receiver} />
+          <Route path='/:senderSocketID' component={Receiver} />
           <Route path='/' component={Sender} />
         </Switch>
       </div>
