@@ -72,26 +72,12 @@ class Host extends Component {
     const qrCode = selfID ? <img className='qr-code' src={'https://chart.apis.google.com/chart?cht=qr&chs=150x150&chl=' + url} /> : false
     return (
       <div className='tutorial'>
-        <h3>これはなに？</h3>
-        <p>
-          WebRTCを利用したファイル転送サービスです。<br />
-          WebRTCはユーザー(ブラウザ)の間にP2P接続を行い直接データのやりとりを行う技術です。
-          P2P接続ではサーバを介さずに直接データのやりとりを行うためセキュアに通信します。
-          (P2P接続確立時にサーバを使用しますが)
-          送信したデータがWeb上に残ることはありません。
-          双方がページを開いている間だけデータの送受信ができます。<br />
-          詳しくは<a href='https://zatsuzen.com/blog/rts/' target='_blank'>こちら</a>
-        </p>
-        <h3>免責事項</h3>
-        <p>
-          このサービスを利用して発生したいかなる損害にも責任を負いません。
-        </p>
         <h3>使い方</h3>
         <ol>
           <li>共有URLをファイルを受け取る相手に通知します</li>
           <li>自動的に相手との間にP2P接続を試みます</li>
           <li>相手との間に接続が確立するとdataChannelマークが<i className='fas fa-check-circle'></i>になります</li>
-          <li>ファイルを追加してから送信ボタンを押すとファイルを送信できます</li>
+          <li>ファイルを追加して送信ボタンを押すとファイルを送信できます</li>
         </ol>
         <div className='url'><span>共有URL</span><a href={url} target='_blank'>{url}</a><button onClick={(e) => this.copy(e, url)} className='copy-button'><i className='fas fa-clone'></i></button></div>
         {qrCode}
@@ -131,10 +117,10 @@ class Host extends Component {
     const tutorial = this.renderTutorial()
     const status = this.renderStatus()
     return (
-      <div className={'home' + mobileMode}>
+      <div className={'host' + mobileMode}>
         <header>
           <div>
-            <h2><Link to='/'>Real-Time File Sharing</Link></h2>
+            <h2><Link to='/'>Real-Time File Transfer</Link></h2>
           </div>
         </header>
         <div className='main'>

@@ -41,6 +41,7 @@ app.use(compression({
 // クライアントアプリを返す
 const client = './client/build'
 app.use('/', express.static(client))
+app.use('/host', express.static(client))
 app.use('/:id', express.static(client))
 
 // データベース準備

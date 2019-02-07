@@ -15,13 +15,12 @@
 // @grey           : #A0A0A0;
 // @black          : #000000;
 
-.home {
+.host {
 
   header {
     width: 100%;
     height: 90px;
     background: #fff;
-    border-bottom: .55px solid rgba(0,0,0,.3);
 
     // 055 Sharp Blues
     // background-image: linear-gradient(to top, #00c6fb 0%, #005bea 100%);
@@ -59,12 +58,11 @@
   }
 
   .main {
-    min-height: calc(100vh - 4em - 90px - 1px);
+    min-height: calc(100vh - 4em - 90px);
     padding: 2em 0;
 
     // 030 Happy Fisher
     background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
-
 
     .tutorial {
       width: 95vw;

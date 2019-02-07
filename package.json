@@ -24,6 +24,7 @@
     "compression": "^1.7.3",
     "connected-react-router": "^6.1.0",
     "express": "^4.16.4",
+    "file-loader": "^3.0.1",
     "history": "^4.7.2",
     "nedb": "^1.8.0",
     "project-version": "^1.2.0",

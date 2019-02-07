@@ -1,0 +1,263 @@
+.home {
+
+  header {
+    width: 100%;
+    height: 90px;
+    background: #fff;
+
+    // 055 Sharp Blues
+    // background-image: linear-gradient(to top, #00c6fb 0%, #005bea 100%);
+
+    // 030 Happy Fisher
+    // background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+
+    & > div {
+      max-width: 940px;
+      height: 90px;
+      margin: 0 auto;
+      padding: 0 16px;
+
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      h2 {
+        display: block;
+        margin: 0;
+        padding: 0;
+        color: #333;
+        font-size: 1.2rem;
+        font-weight: normal;
+
+        a {
+          color: #333;
+          text-decoration: none;
+
+          &:hover {
+            color: #666;
+            text-decoration: underline;
+          }
+        }
+      }
+
+      span {
+        display: block;
+
+        a {
+          display: block;
+          margin: 0;
+          padding: 6px 16px;
+          border-radius: 8px;
+          color: #fff;
+          font-size: 14px;
+          font-weight: bold;
+          background: rgba(56,128,255,1);
+          transition: background-color .2s ease-out 0s;
+          text-decoration: none;
+
+          &:hover {
+            background: rgba(56,128,255,.8);
+          }
+        }
+      }
+    }
+  }
+
+  footer {
+    margin: 48px 0;
+    width: 100%;
+
+    .title {
+      width: 100%;
+      max-width: 600px;
+      margin: 24px auto 12px;      
+    }
+
+    h2 {
+      display: block;
+      margin: 24px auto 12px 12px;
+      font-size: 16px;
+      font-weight: normal;
+
+      a {
+        text-decoration: none;
+        color: #333;
+  
+        &:hover {
+          text-decoration: underline;
+        }  
+      }
+    }
+
+    .author {
+      width: 600px;
+      max-width: 600px;
+      margin: 0 auto;
+
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+
+      img {
+        display: block;
+        width: 50px;
+        height: 50px;
+        margin: 0 0 0 12px;
+        border-radius: 100%;
+      }
+
+      p {
+        margin: 0 0 0 8px;
+        color: #666;
+
+        a {
+          display: inline-block;
+          margin: 0 8px;
+          color: #333;
+          text-decoration: none;
+          transition: color .2s ease-out 0s;
+
+          &:hover {
+            color: #1da1f2;
+          }
+        }
+      }
+    }
+  }
+
+  .main {
+    min-height: calc(100vh - 90px);
+    padding: 0 0 48px;
+
+    // 030 Happy Fisher
+    background-image: linear-gradient(120deg, #89f7fe 0%, #66a6ff 100%);
+
+    .title {
+      width: 100%;
+      max-width: 600px;
+      min-height: 40vh;
+      margin: 0 auto;
+
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      & > div {
+        h1 {
+          text-align: center;
+        }
+
+        p {
+          margin: 24px 0 0;
+          padding: 0;
+          text-align: center;
+        }
+
+        & > div {
+          margin: 24px auto 0;
+          text-align: center;
+
+          a {
+            display: inline-block;
+            margin: 0;
+            padding: 6px 96px;
+            border: 2px #fff solid;
+            border-radius: 8px;
+            color: #fff;
+            font-size: 14px;
+            font-weight: bold;
+            background: rgba(255,255,255,0);
+            transition: all .2s ease-out 0s;
+            text-decoration: none;
+
+            &:hover {
+              background: rgba(56,128,255,.2);
+            }
+          }
+        }
+      }
+    }
+
+    .tutorial {
+      width: 95%;
+      max-width: 600px;
+      margin: 0 auto;
+
+      .feature {
+        margin: 0;
+        display: flex;
+
+        &.pc {
+          flex-direction: row;
+        }
+
+        &.mobile {
+          flex-direction: column;
+        }
+
+        & > div {
+          flex: 1;
+          margin: 0 12px 48px;
+
+          .icon {
+            margin: 48px 0 12px;
+            text-align: center;
+
+            i {
+              font-size: 32px;
+              color: #333;
+            }
+          }
+
+          h3 {
+            margin: 0;
+            padding: 0;
+            font-size: 16px;
+            // font-weight: normal;
+            text-align: center;
+            color: #333;
+          }
+
+          p {
+            margin: 1em 0 0;
+            font-size: 16px;
+            line-height: 24px;
+          }
+
+          p.webrtc {
+            margin: .5em 0 0;
+            font-size: 14px;
+            line-height: 18px;
+            text-align: center;
+
+            a.webrtc {
+              display: inline-block;
+              margin: 0 auto;
+              padding: 6px 16px;
+              border-radius: 8px;
+              color: #fff;
+              background: rgba(0,0,0,.5);
+              transition: background-color .2s ease-out 0s;
+              text-decoration: none;
+
+              &:hover {
+                background: rgba(0,0,0,.2);
+              }
+            }
+          }
+        }
+      }
+
+      h3 {
+        display: block;
+        margin: 24px 12px 12px;
+      }
+
+      p {
+        display: block;
+        margin: 0 12px;
+        font-size: 16px;
+      }
+    }
+  }
+}

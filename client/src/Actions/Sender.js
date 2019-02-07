@@ -258,7 +258,7 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
         // 送信および状態更新
         sendDataChannel(packet)
         updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
-        // updateSendFileList(id, 'sendPacketCount', sendPacketCount+1, dispatch, getState)        
+        updateSendFileList(id, 'sendPacketCount', sendPacketCount+1, dispatch, getState)        
         sendPacketCount++
         start = end
         // console.log('データ送信中')

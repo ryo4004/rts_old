@@ -58,6 +58,22 @@ class Guest extends Component {
     this.props.disconnect()
   }
 
+  renderTutorial() {
+    const selfID = this.props.selfID ? this.props.selfID : false
+    const url = selfID ? 'https://' + location.host + '/' + selfID : 'generating...'
+    const qrCode = selfID ? <img className='qr-code' src={'https://chart.apis.google.com/chart?cht=qr&chs=150x150&chl=' + url} /> : false
+    return (
+      <div className='tutorial'>
+        <h3>使い方</h3>
+        <ol>
+          <li>自動的に相手との間にP2P接続を試みます</li>
+          <li>相手との間に接続が確立するとdataChannelマークが<i className='fas fa-check-circle'></i>になります</li>
+          <li>ファイルを追加して送信ボタンを押すとファイルを送信できます</li>
+        </ol>
+      </div>
+    )
+  }
+
   renderStatus () {
     // const available = this.props.available === true ? 'OK' : 'NG'
     // const socketID = this.props.socket ? this.props.socket.id : '-'
@@ -76,15 +92,17 @@ class Guest extends Component {
 
   render () {
     const mobileMode = this.props.mobile ? ' mobile' : ' pc'
+    const tutorial = this.renderTutorial()
     const status = this.renderStatus()
     return (
-      <div className={'receiver' + mobileMode}>
+      <div className={'guest' + mobileMode}>
         <header>
           <div>
-            <h2><Link to='/'>Real-Time File Sharing</Link></h2>
+            <h2><Link to='/'>Real-Time File Transfer</Link></h2>
           </div>
         </header>
         <div className='main'>
+          {tutorial}
           {status}
           <FileController />
         </div>

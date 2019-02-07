@@ -83,6 +83,7 @@
         // 102 Happy Memories
         // background-image: linear-gradient(-60deg, #ff5858 0%, #f09819 100%);
         color: #eee;
+        opacity: .8;
       }
 
       &.disable {
@@ -368,9 +369,13 @@
     //   cursor: pointer;
     // }
 
-    button.standby {
-      background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
-    }
+    // button.standby {
+    //   background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
+
+    //   &:hover {
+    //     opacity: .6;
+    //   }
+    // }
 
   }
 
@@ -641,9 +646,13 @@
       cursor: pointer;
     }
 
-    button.standby {
-      background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
-    }
+    // button.standby {
+    //   background-image: linear-gradient(to right, #f83600 0%, #f9d423 100%);
+
+    //   &:hover {
+    //     opacity: .6;
+    //   }
+    // }
 
   }
 }
