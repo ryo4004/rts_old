@@ -8,7 +8,7 @@ import { receiverConnect, disconnect } from '../../../Actions/Connection'
 
 import FileController from '../FileController/FileController'
 
-import './Receiver.css'
+import './Guest.css'
 
 function mapStateToProps(state) {
   return {
@@ -42,7 +42,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class Receiver extends Component {
+class Guest extends Component {
   constructor (props) {
     super(props)
   }
@@ -93,4 +93,4 @@ class Receiver extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Receiver)
+export default connect(mapStateToProps, mapDispatchToProps)(Guest)

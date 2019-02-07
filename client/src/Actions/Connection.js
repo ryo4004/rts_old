@@ -95,16 +95,16 @@ export const senderConnect = () => {
         console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
         switch (peerConnection.iceConnectionState) {
           case 'new':
-            console.log('peerConnection new', dataChannel.readyState)
+            console.log('peerConnection new')
             break
           case 'checking':
-            console.log('peerConnection checking', dataChannel.readyState)
+            console.log('peerConnection checking')
             break
           case 'connected':
-            console.log('peerConnection connected', dataChannel.readyState)
+            console.log('peerConnection connected')
             break
           case 'completed':
-            console.log('peerConnection completed', dataChannel.readyState)
+            console.log('peerConnection completed')
             break
           case 'closed':
             if (dataChannel) {
@@ -225,16 +225,16 @@ export const receiverConnect = (senderSocketID) => {
         console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
         switch (peerConnection.iceConnectionState) {
           case 'new':
-            console.log('peerConnection new', dataChannel.readyState)
+            console.log('peerConnection new')
             break
           case 'checking':
-            console.log('peerConnection checking', dataChannel.readyState)
+            console.log('peerConnection checking')
             break
           case 'connected':
-            console.log('peerConnection connected', dataChannel.readyState)
+            console.log('peerConnection connected')
             break
           case 'completed':
-            console.log('peerConnection completed', dataChannel.readyState)
+            console.log('peerConnection completed')
             break
           case 'closed':
             if (dataChannel) {

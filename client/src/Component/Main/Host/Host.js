@@ -9,7 +9,7 @@ import { addFile, sendData, deleteFile } from '../../../Actions/Sender'
 
 import FileController from '../FileController/FileController'
 
-import './Sender.css'
+import './Host.css'
 
 function mapStateToProps(state) {
   return {
@@ -53,7 +53,7 @@ function mapDispatchToProps(dispatch) {
   }
 }
 
-class Sender extends Component {
+class Host extends Component {
   constructor (props) {
     super(props)
   }
@@ -74,11 +74,13 @@ class Sender extends Component {
       <div className='tutorial'>
         <h3>これはなに？</h3>
         <p>
-          WebRTCを利用したファイル転送サービスです。
-          WebRTCはユーザー同士によるP2P接続により直接データのやりとりが行えます。
-          P2P接続では直接データのやりとりを行うためセキュアに通信します。
+          WebRTCを利用したファイル転送サービスです。<br />
+          WebRTCはユーザー(ブラウザ)の間にP2P接続を行い直接データのやりとりを行う技術です。
+          P2P接続ではサーバを介さずに直接データのやりとりを行うためセキュアに通信します。
+          (P2P接続確立時にサーバを使用しますが)
           送信したデータがWeb上に残ることはありません。
-          双方がページを開いている間だけデータの送受信ができます。
+          双方がページを開いている間だけデータの送受信ができます。<br />
+          詳しくは<a href='https://zatsuzen.com/blog/rts/' target='_blank'>こちら</a>
         </p>
         <h3>免責事項</h3>
         <p>
@@ -145,4 +147,4 @@ class Sender extends Component {
   }
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(Sender)
+export default connect(mapStateToProps, mapDispatchToProps)(Host)

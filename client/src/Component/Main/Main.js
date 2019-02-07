@@ -6,8 +6,8 @@ import { windowWidthChange } from '../../Actions/Status'
 
 import { addFile } from '../../Actions/Sender'
 
-import Sender from './Sender/Sender'
-import Receiver from './Receiver/Receiver'
+import Host from './Host/Host'
+import Guest from './Guest/Guest'
 
 import './Main.css'
 
@@ -70,8 +70,8 @@ class Main extends Component {
         <div className='drop-frame'>
         </div>
         <Switch>
-          <Route path='/:senderSocketID' component={Receiver} />
-          <Route path='/' component={Sender} />
+          <Route path='/:senderSocketID' component={Guest} />
+          <Route path='/' component={Host} />
         </Switch>
       </div>
     )
