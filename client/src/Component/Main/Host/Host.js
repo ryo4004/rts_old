@@ -79,7 +79,9 @@ class Host extends Component {
           <li>相手との間に接続が確立するとdataChannelマークが<i className='fas fa-check-circle'></i>になります</li>
           <li>ファイルを追加して送信ボタンを押すとファイルを送信できます</li>
         </ol>
-        <div className='url'><span>共有URL</span><a href={url} target='_blank'>{url}</a><button onClick={(e) => this.copy(e, url)} className='copy-button'><i className='fas fa-clone'></i></button></div>
+        {/* <div className='url'><span>共有URL</span><a href={url} target='_blank'>{url}</a><button onClick={(e) => this.copy(e, url)} className='copy-button'><i className='fas fa-clone'></i></button></div> */}
+        <div className='url'><span>共有URL</span><div onClick={(e) => this.copy(e, url)} className='copy-button'>{url}<i className='fas fa-clone'></i></div></div>
+        <span className='url-guide'>URLをクリックでコピー</span>
         {qrCode}
       </div>
     )

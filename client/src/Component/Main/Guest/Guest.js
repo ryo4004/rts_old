@@ -24,7 +24,11 @@ function mapStateToProps(state) {
 
     // ファイル受信用
     receiveFileList: state.receiver.receiveFileList,
-    receiveFileUrlList: state.receiver.receiveFileUrlList
+    receiveFileUrlList: state.receiver.receiveFileUrlList,
+
+    // エラー
+    errorState: state.receiver.errorState,
+    errorText: state.receiver.errorText
   }
 }
 
@@ -79,12 +83,18 @@ class Guest extends Component {
     // const socketID = this.props.socket ? this.props.socket.id : '-'
     // const selfID = this.props.selfID ? this.props.selfID : '-'
     // const senderID = this.props.senderID ? this.props.senderID : '-'
+    const renderError = this.props.errorState ? (
+      <div className='error-status'>
+        {this.props.errorText}
+      </div>
+    ) : false
     return (
       <div className='status'>
         {/* <div>status: {available}</div>
         <div>socketid: {socketID}</div>
         <div>selfID: {selfID}</div>
         <div>senderID: {senderID}</div> */}
+        {renderError}
         <div className='data-channel-status'><div className={this.props.dataChannelOpenStatus ? 'ok' : 'ng'}><span>{this.props.dataChannelOpenStatus ? <i className='fas fa-check-circle'></i> : <i className='fas fa-times-circle'></i>}</span><label>dataChannel</label></div></div>
       </div>
     )

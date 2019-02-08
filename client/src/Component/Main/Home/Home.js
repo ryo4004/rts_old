@@ -88,7 +88,31 @@ class Home extends Component {
                 </p>
               </div>
             </div>
-            <h3>詳細</h3>
+            <h3>対応ブラウザ</h3>
+            <p>
+              WebRTCに対応している以下のブラウザおよびプラットフォームでご利用いただけます。
+            </p>
+            <div className='browsers'>
+              <div className='browser'>
+                <i className='fab fa-chrome'></i><span>Chrome</span>
+              </div>
+              <div className='browser'>
+                <i className='fab fa-firefox'></i><span>Firefox</span>
+              </div>
+              <div className='browser'>
+                <i className='fab fa-opera'></i><span>Opera</span>
+              </div>
+              <div className='browser'>
+                <i className='fab fa-safari'></i><span>Safari</span>
+              </div>
+              <div className='browser'>
+                <i className='fab fa-android'></i><span>Android</span>
+              </div>
+              <div className='browser'>
+                <i className='fab fa-apple'></i><span>iOS</span>
+              </div>
+            </div>
+            <h3>その他</h3>
             <p>
               詳しくは<a href='https://zatsuzen.com/blog/rts/' target='_blank'>こちら</a>(まだ書いてない笑)
             </p>
@@ -101,7 +125,7 @@ class Home extends Component {
               <li>共有URLをファイルを共有する相手に通知します</li>
               <li>自動的に相手との間にP2P接続を試みます</li>
               <li>相手との間に接続が確立するとdataChannelマークが<i className='fas fa-check-circle'></i>になります</li>
-              <li>ファイルを追加してから送信ボタンを押すとファイルを送信できます</li>
+              <li>ファイルを追加して送信ボタンを押すとファイルを送信できます</li>
             </ol>
           </div>
         </div>

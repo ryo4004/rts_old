@@ -254,7 +254,7 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
         packet.set(fileInfo.idBuffer, flagLength)
         packet.set(new Uint8Array(packetData), flagLength + idLength)
         // Chrome待機用(不要になったかも)
-        // while (dataChannel.bufferedAmount > 0) {}
+        while (dataChannelBufferedAmount() > 0) {}
         // 送信および状態更新
         sendDataChannel(packet)
         updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)

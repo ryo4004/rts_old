@@ -86,6 +86,17 @@
       padding: 0;
       border-radius: 8px;
       background: rgba(255,255,255,.5);
+      text-align: center;
+
+      .error-status {
+        display: inline-block;
+        width: calc(100% - 16px);
+        margin: 8px auto;
+        border-radius: 8px;
+        color: #f0506e;
+        background: #fef4f6;
+        text-align: center;
+      }
 
       .data-channel-status {
         margin: 0 24px;

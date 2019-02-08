@@ -104,6 +104,7 @@
           padding: 2px 8px 2px 6px;
           border-radius: 8px 0 0 8px;
           background: rgba(0,0,0,.1);
+          // line-height: 26px;
         }
 
         a {
@@ -120,12 +121,12 @@
 
         .copy-button {
           display: inline-block;
-          height: 26px;
           margin: 0;
           padding: 2px 8px;
           border-radius: 0 8px 8px 0;
           background: inherit;
           color: #666;
+          cursor: pointer;
 
           &:hover {
             background: rgba(0,0,0,.1);
@@ -136,9 +137,15 @@
           }
 
           i {
+            margin-left: .2em;
             font-size: 14px;
           }
         }
+      }
+
+      span.url-guide {
+        font-size: .6em;
+        color: #666;
       }
 
       img.qr-code {

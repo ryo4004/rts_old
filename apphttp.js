@@ -45,6 +45,7 @@ app.use(compression({
 // クライアントアプリを返す
 const client = './client/build'
 app.use('/', express.static(client))
+app.use('/host', express.static(client))
 app.use('/:id', express.static(client))
 
 // データベース準備
@@ -99,12 +100,33 @@ const getSocketID = (id) => {
   })
 }
 
+const getSocketIDWithCheck = (id) => {
+  return new Promise((resolve, reject) => {
+    statusDB.findOne({ id }, (err, status) => {
+      if (err) return resolve(null, 'id error')
+      if (!status) return resolve(null, 'id error')
+      if (status.disable === true) return resolve(null, 'id error')
+      return resolve(status.socketid, null)
+    })
+  })
+}
+
+function disableSocket (id) {
+  statusDB.findOne({ id }, (err, status) => {
+    // console.log(status)
+    if (!status) return
+    status.disable = true
+    statusDB.update({ id }, status, {}, (err, n) => {
+    })
+  })
+}
+
 // 接続処理
 io.on('connection', (socket) => {
   // URL用ID作成
-  const id = lib.randomString()  
+  const id = lib.shuffle(lib.randomString())
   // console.log('(socket)[' + lib.showTime() + '] connection: ', socket.client.id, 'id: ', id)
-  const reg = { status: 'connection', socketid: socket.client.id, id }
+  const reg = { status: 'connection', socketid: socket.client.id, id, disable: false }
   statusDB.insert(reg, (err, newdoc) => {
     if (err) return console.log('database error')
     // id を通知
@@ -126,12 +148,18 @@ io.on('connection', (socket) => {
 
   // First request from Receiver to Sender
   socket.on('request_to_sender', async (obj) => {
-    console.log('(socket)[' + lib.showTime() + '] request_to_sender',)
+    console.log('(socket)[' + lib.showTime() + '] request_to_sender')
     // const fromSocket = await getSocketID(obj.from)
-    const toSocket = await getSocketID(obj.to)
+    const toSocket = await getSocketIDWithCheck(obj.to)
+    disableSocket(obj.to)
     // console.log('from: ', fromSocket)
     console.log('to: ', toSocket)
-    io.to(toSocket).emit('request_to_sender', obj)
+    if (toSocket) {
+      io.to(toSocket).emit('request_to_sender', obj)
+    } else {
+      const fromSocket = await getSocketID(obj.from)
+      io.to(fromSocket).emit('request_to_sender_error', { error: 'not_found' })
+    }
   })
 
   // Reciever send offer SDP
@@ -140,7 +168,7 @@ io.on('connection', (socket) => {
     const toSocket = await getSocketID(obj.to)
     io.to(toSocket).emit('send_offer_sdp', obj)
   })
-  
+
   // Sender send answer SDP
   socket.on('send_answer_sdp', async (obj) => {
     console.log('(socket)[' + lib.showTime() + '] send_answer_sdp')

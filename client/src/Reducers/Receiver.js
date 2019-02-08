@@ -9,6 +9,9 @@ const initialState = {
   // ファイルURLリスト
   receiveFileUrlList: {},
   // receivedFileUrl: undefined,
+
+  errorState: undefined,
+  errorText: undefined,
 }
 
 const prefix = 'RECEIVER_'
@@ -34,6 +37,12 @@ export default function receiverReducer (state = initialState, action) {
       return {
         ...state,
         receiveFileUrlList: action.payload.receiveFileUrlList
+      }
+    case prefix + 'SET_RECEIVE_ERROR':
+      return {
+        ...state,
+        errorState: action.payload.errorState,
+        errorText: action.payload.errorText
       }
     default:
       return state

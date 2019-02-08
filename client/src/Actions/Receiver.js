@@ -66,6 +66,14 @@ const loading = (loading) => ({
   payload: { loading }
 })
 
+export const receiverError = (errorTextClient, errorTextServer) => ({
+  type: prefix + 'SET_RECEIVE_ERROR',
+  payload: {
+    errorState: true,
+    errorText: errorTextClient + ' ' + errorTextServer
+  }
+})
+
 const setReceiveFileList = (receiveFileList) => ({
   type: prefix + 'SET_RECEIVE_FILE_LIST',
   payload: { receiveFileList }

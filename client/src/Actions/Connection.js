@@ -4,7 +4,7 @@ import { randomString, stringToBuffer, bufferToString } from '../Library/Library
 
 import { senderReceiveData, dataChannelOnOpen } from './Sender'
 
-import { receiverReceiveData } from './Receiver'
+import { receiverReceiveData, receiverError } from './Receiver'
 
 const prefix = 'CONNECTION_'
 
@@ -190,6 +190,7 @@ export const receiverConnect = (senderSocketID) => {
       // request_to_senderに対するエラー(相手が見つからない)
       socket.on('request_to_sender_error', (obj) => {
         console.error('request_to_sender_error', obj.error)
+        dispatch(receiverError('request_to_sender_error', obj.error))
       })
 
       // peerConnectionを作成
@@ -330,6 +331,10 @@ export const disconnect = () => {
   }
 }
 
+export const dataChannelBufferedAmount = () => {
+  return dataChannel.bufferedAmount
+}
+
 export const sendDataChannel = (data) => {
   dataChannel.send(data)
   // if (dataChannel.readyState === 'open') {
@@ -346,8 +351,4 @@ export const receiveDataChannel = (event, dispatch, getState) => {
     }
   }
   receiverReceiveData(event, dispatch, getState)
-}
-
-export const dataChannelBufferedAmount = () => {
-  return dataChannel.bufferedAmount
 }
