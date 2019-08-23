@@ -105,7 +105,7 @@ class Host extends Component {
 
   copy (e, url) {
     e.preventDefault()
-    console.log(url)
+    // console.log(url)
     const div = document.createElement('div')
     div.appendChild(document.createElement('pre')).textContent = url
     document.body.appendChild(div)

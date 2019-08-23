@@ -68,7 +68,7 @@ class FileController extends Component {
   // }
 
   fileSelect (e) {
-    console.log('fileSelect', e.target.files)
+    // console.log('fileSelect', e.target.files)
     this.props.addFile(e.target.files)
   }
 
@@ -121,6 +121,8 @@ class FileController extends Component {
       const each = this.props.sendFileList[id]
       const icon = <i className={fileIcon(each.name, each.type)}></i>
       const fileSize = fileSizeUnit(each.size)
+      // '\u00A0'.repeat(String(each.sendTime).length - String(each.sendPacketCount).length) + each.sendPacketCount
+      const count = each.send === false ? false : (each.receiveComplete === false ? (each.delete ? false : each.sendPacketCount + '/' + each.sendTime) : false)
 
       if (each.delete) return (
         <li key={'filelist-' + i} className='send-filelist deleted'>
@@ -129,7 +131,7 @@ class FileController extends Component {
             <div className='file-icon'>{icon}</div>
             <div className='detail'>
               <div className='file-name'>{each.name}</div>
-              <div className='send-size'>{fileSize}</div>
+              <div className='send-size'><span>{fileSize}</span><span>{count}</span></div>
             </div>
           </div>
         </li>
@@ -143,7 +145,6 @@ class FileController extends Component {
       const statusClass = each.send === false ? (each.load ? 'loading' : 'not-send') : (each.send !== 100 ? 'sending' : (each.receiveComplete === false ? 'wait-response' : (each.receiveResult ? 'complete' : 'failed')))
       const sendProgress = each.send ? {backgroundSize: each.send + '% 100%'} : {backgroundSize: '0% 100%'}
       // const sendSize = isNaN(each.send) ? '-' : fileSizeUnit(each.size * each.send / 100)
-      const count = each.sendPacketCount + '/' + each.sendTime
       const progressBar = () => {
         return (
           <div className={'send-progress-bar' + (each.send === false ? ' standby' : (each.receiveComplete ? ' complete' : ' sending'))}>
@@ -160,9 +161,8 @@ class FileController extends Component {
             <div className='file-icon'>{icon}{sendPercent}</div>
             <div className='detail'>
               <div className='file-name'>{each.name}</div>
-              <div className='send-size'>{fileSize} - {count}</div>
+              <div className='send-size'><span>{fileSize}</span><span>{count}</span></div>
               {progressBar()}
-              {/* <div className='send-size'>{Math.ceil(each.size * each.send / 100)} / {each.size}</div> */}
             </div>
           </div>
         </li>
@@ -212,12 +212,12 @@ class FileController extends Component {
       }
 
       const status = each.receive === false ? <span>未受信</span> : each.receive !== 100 ? <span>受信中</span> : (each.receiveComplete === false ? <span>処理中</span> : (each.receiveResult ? <span>完了</span> : <span>受信失敗</span>))
-
       const statusClass = each.receive === false ? 'not-receive' : each.receive !== 100 ? 'receiving' : (each.receiveComplete === false ? 'wait-response' : (each.receiveResult ? 'complete' : 'failed'))
       // const receiveSize = isNaN(each.receive) ? '-' : fileSizeUnit(each.size * each.receive / 100)
       const receivePercent = each.receive === false ? <div className='receive-percent standby'>{each.receive + '%'}</div> : (each.receive !== 100 ? <div className='receive-percent receiving'>{(each.receive).toFixed(1) + '%'}</div> : <div className='receive-percent complete'>{each.receive + '%'}</div>)
       const receiveProgress = each.receive ? {backgroundSize: each.receive + '% 100%'} : {backgroundSize: '0% 100%'}
-      const count = each.receivePacketCount + '/' + each.sendTime
+      // const count = each.receivePacketCount + '/' + each.sendTime
+      const count = each.receive === false ? false : (each.receiveResult === false ? each.receivePacketCount + '/' + each.sendTime : false)
       const progressBar = () => {
         return (
           <div className={'receive-progress-bar' + (each.receive === false ? ' standby' : (each.receive !== 100 ? ' receiving' : ' complete'))}>
@@ -233,7 +233,7 @@ class FileController extends Component {
             <div className='file-icon'>{icon}{receivePercent}</div>
             <div className='detail'>
               <div className='file-name'><span>{each.name}</span></div>
-              <div className='receive-size'>{fileSize} - {count}</div>
+              <div className='receive-size'><span>{fileSize}</span><span>{count}</span></div>
               {progressBar()}
             </div>
           </div>
@@ -245,7 +245,7 @@ class FileController extends Component {
 
   // デバッグ用
   show () {
-    console.log('send', this.props.sendFileList, 'receive', this.props.receiveFileList)
+    // console.log('send', this.props.sendFileList, 'receive', this.props.receiveFileList)
   }
 
   render () {

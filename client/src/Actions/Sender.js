@@ -104,7 +104,7 @@ export const deleteFile = (id) => {
       }
       sendDataChannel(JSON.stringify(deleteFileInfo))
     }
-    console.log('ファイル削除')
+    // console.log('ファイル削除')
     updateSendFileList(id, 'delete', true, dispatch, getState)
   }
 }
@@ -136,7 +136,7 @@ function sendFileListOnDataChannel (dispatch, getState) {
         sendFileInfo.add[id].receive = false
         sendFileInfo.add[id].preReceiveInfo = false
         sendFileInfo.add[id].receivePacketCount = 0
-        console.log('preSendInfo')
+        // console.log('preSendInfo')
         sendDataChannel(JSON.stringify(sendFileInfo))
         updateSendFileList(id, 'preSendInfo', true, dispatch, getState)
       }
@@ -159,7 +159,7 @@ export function senderReceiveData (event, dispatch, getState) {
     if (JSON.parse(event.data).receiveComplete !== undefined) {
       const receiveComplete = JSON.parse(event.data).receiveComplete
       // 受信完了通知
-      console.log('受信完了通知', (receiveComplete ? '成功' : '失敗'))
+      // console.log('受信完了通知', (receiveComplete ? '成功' : '失敗'))
       // console.timeEnd('sendFileTotal' + receiveComplete.id)
       updateSendFileList(receiveComplete.id, 'receiveComplete', true, dispatch, getState)
       updateSendFileList(receiveComplete.id, 'receiveResult', receiveComplete.result, dispatch, getState)
@@ -169,9 +169,9 @@ export function senderReceiveData (event, dispatch, getState) {
 
 export const sendData = () => {
   return (dispatch, getState) => {
-    if (!getState().connection.dataChannelOpenStatus) return console.error('Data Channel not open')
+    if (!getState().connection.dataChannelOpenStatus) return // console.error('Data Channel not open')
     const sendFileList = Object.assign({}, getState().sender.sendFileList)
-    if (Object.keys(sendFileList).length === 0) return console.error('Send file not found')
+    if (Object.keys(sendFileList).length === 0) return // console.error('Send file not found')
     // 未送信ファイルのidのみのリストを作成
     const sendList = Object.keys(sendFileList).filter((id) => {
       const file = sendFileList[id]
@@ -189,7 +189,7 @@ export const sendData = () => {
 }
 
 function sendFileData (id, dispatch, getState) {
-  console.log('ファイル送信処理開始', id)
+  // console.log('ファイル送信処理開始', id)
 
   // ファイル情報を取得
   const sendFileList = Object.assign({}, getState().sender.sendFileList)
@@ -218,8 +218,8 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
       id: id
     }
   }
-  console.log('ファイル送信準備')
-  console.time('sendFile(' + id + ')')
+  // console.log('ファイル送信準備')
+  // console.time('sendFile(' + id + ')')
   sendDataChannel(JSON.stringify(startFileInfo))
 
   let start = 0
@@ -227,7 +227,7 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
 
   function openSend () {
     if (getState().sender.sendFileList[id].delete) {
-      console.log('削除されたため中断', id)
+      // console.log('削除されたため中断', id)
       return
     }
     if (!(start < file.size)) {
@@ -239,8 +239,8 @@ function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
       }
       sendDataChannel(JSON.stringify(endFileInfo))
       updateSendFileList(id, 'send', 100, dispatch, getState)
-      console.timeEnd('sendFile(' + id + ')')
-      console.log('ファイル送信完了')
+      // console.timeEnd('sendFile(' + id + ')')
+      // console.log('ファイル送信完了')
       return
     }
     let end = start + packetSize

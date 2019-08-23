@@ -23,7 +23,7 @@ const store = createStore(
 )
 
 history.listen((location) => {
-  console.log('location change', location)
+  // console.log('location change', location)
   window.localStorage.setItem('location', location.pathname)
 })
 

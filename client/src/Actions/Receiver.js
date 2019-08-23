@@ -129,8 +129,8 @@ function createReceiveFile (id, dispatch, getState) {
   }
   sendDataChannel(JSON.stringify(receiveComplete))
 
-  console.log('受信完了')
-  receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致', receiveFileInfo.receivePacketCount, receiveFileInfo.sendTime)
+  // console.log('受信完了')
+  // receiveFileInfo.receivePacketCount === receiveFileInfo.sendTime ? console.log('送信回数一致') : console.log('送信回数不一致', receiveFileInfo.receivePacketCount, receiveFileInfo.sendTime)
 
   // const reducer = (accumulator, currentValue) => accumulator + currentValue
   // let length = packets.reduce((accumulator, currentValue) => {
@@ -218,7 +218,7 @@ export function receiverReceiveData (event, dispatch, getState) {
       // 受信ファイル一覧を取得
       // addプロパティを外す
       const receiveFileList = JSON.parse(event.data).add
-      console.log('受信ファイルリストに追加')
+      // console.log('受信ファイルリストに追加')
       Object.assign(receiveFileList, getState().receiver.receiveFileList)
       dispatch(setReceiveFileList(receiveFileList))
       return
@@ -235,7 +235,7 @@ export function receiverReceiveData (event, dispatch, getState) {
       const startReceive = JSON.parse(event.data).start
       // console.time('receiveTotal' + startReceive.id)
       // console.time('receiveFile' + startReceive.id)
-      console.log('ファイル受信開始')
+      // console.log('ファイル受信開始')
       resetReceiveFileStorage(startReceive.id, dispatch, getState)
       // これはもう受信済み
       // updateReceiveFileList(startReceive.id, 'byteLength', startReceive.size.byteLength, dispatch, getState)
@@ -250,7 +250,7 @@ export function receiverReceiveData (event, dispatch, getState) {
       // endプロパティを外す
       const endReceive = JSON.parse(event.data).end
       // console.timeEnd('receiveFile' + endReceive.id)
-      console.log('ファイル受信完了')
+      // console.log('ファイル受信完了')
       createReceiveFile(endReceive.id, dispatch, getState)
       updateReceiveFileList(endReceive.id, 'receive', 100, dispatch, getState)
       return
@@ -263,8 +263,8 @@ export function receiverReceiveData (event, dispatch, getState) {
   updateReceiveFileStorage(id, receiveData, dispatch, getState)
   updateReceiveFileList(id, 'receivePacketCount', receiveFileInfo.receivePacketCount + 1, dispatch, getState)
   updateReceiveFileList(id, 'receive', Math.ceil(receiveFileInfo.receivePacketCount / receiveFileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
-
-  return console.log('データ受信中')
+  // console.log('データ受信中')
+  return
 }
 
 const setReceiveFileUrlList = (receiveFileUrlList) => ({

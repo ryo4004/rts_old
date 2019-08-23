@@ -72,18 +72,19 @@ export const senderConnect = () => {
       peerConnection.ondatachannel = (event) => {
         dataChannel = event.channel
         dataChannel.onopen = () => {
-          console.log('DataChannel onopen')
+          socket.disconnect()
+          // console.log('DataChannel onopen')
           dispatch(dataChannelOpenStatus(true))
           // 未送信のファイルリストを確認して送信
           dataChannelOnOpen(dispatch, getState)
         }
         dataChannel.onclose = () => {
           dispatch(dataChannelOpenStatus(false))
-          console.log('DataChannel onclose')
+          // console.log('DataChannel onclose')
         }
         dataChannel.onerror = () => {
           dispatch(dataChannelOpenStatus(false))
-          console.log('DataChannel onerror')
+          // console.log('DataChannel onerror')
         }
         // 受信データ形式を明示(ブラウザ間差異のため)
         dataChannel.binaryType = 'arraybuffer'
@@ -92,54 +93,54 @@ export const senderConnect = () => {
         }
       }
       peerConnection.oniceconnectionstatechange = (event) => {
-        console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
+        // console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
         switch (peerConnection.iceConnectionState) {
           case 'new':
-            console.log('peerConnection new')
+            // console.log('peerConnection new')
             break
           case 'checking':
-            console.log('peerConnection checking')
+            // console.log('peerConnection checking')
             break
           case 'connected':
-            console.log('peerConnection connected')
+            // console.log('peerConnection connected')
             break
           case 'completed':
-            console.log('peerConnection completed')
+            // console.log('peerConnection completed')
             break
           case 'closed':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection closed', dataChannel.readyState)
+            // console.log('peerConnection closed', dataChannel.readyState)
             break
           case 'failed':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection failed', dataChannel.readyState)
+            // console.log('peerConnection failed', dataChannel.readyState)
             break
           case 'disconnected':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection disconnected', dataChannel.readyState)
+            // console.log('peerConnection disconnected', dataChannel.readyState)
             break
           default:
-            console.log('peerConnection default', peerConnection.iceConnectionState)
+            // console.log('peerConnection default', peerConnection.iceConnectionState)
         }
       }
       peerConnection.onicegatheringstatechange = (event) => {
-        console.log('onicegatheringstatechange', event, peerConnection.iceConnectionState)
+        // console.log('onicegatheringstatechange', event, peerConnection.iceConnectionState)
       }
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-          console.log('onicecandidate')
+          // console.log('onicecandidate')
           getState().connection.socket.emit('send_found_candidate', {
             selfType: 'Sender',
             to: getState().connection.receiverSocketID,
@@ -160,7 +161,7 @@ export const senderConnect = () => {
       })
     })
     socket.on('send_found_candidate', async (obj) => {
-      console.log('onicecandidate found')
+      // console.log('onicecandidate found')
       await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
   }
@@ -189,7 +190,7 @@ export const receiverConnect = (senderSocketID) => {
       })
       // request_to_senderに対するエラー(相手が見つからない)
       socket.on('request_to_sender_error', (obj) => {
-        console.error('request_to_sender_error', obj.error)
+        // console.error('request_to_sender_error', obj.error)
         dispatch(receiverError('request_to_sender_error', obj.error))
       })
 
@@ -205,16 +206,17 @@ export const receiverConnect = (senderSocketID) => {
         }
       )
       dataChannel.onopen = () => {
+        socket.disconnect()
         dispatch(dataChannelOpenStatus(true))
-        console.log('DataChannel onopen')
+        // console.log('DataChannel onopen')
       }
       dataChannel.onclose = () => {
         dispatch(dataChannelOpenStatus(false))
-        console.log('DataChannel onclose')
+        // console.log('DataChannel onclose')
       }
       dataChannel.onerror = () => {
         dispatch(dataChannelOpenStatus(false))
-        console.log('DataChannel onerror')
+        // console.log('DataChannel onerror')
       }
       // 受信データ形式を明示(ブラウザ間差異のため)
       dataChannel.binaryType = 'arraybuffer'
@@ -223,54 +225,54 @@ export const receiverConnect = (senderSocketID) => {
         receiveDataChannel(event, dispatch, getState)
       }
       peerConnection.oniceconnectionstatechange = (event) => {
-        console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
+        // console.log('oniceconnectionstatechange', event, peerConnection.iceConnectionState)
         switch (peerConnection.iceConnectionState) {
           case 'new':
-            console.log('peerConnection new')
+            // console.log('peerConnection new')
             break
           case 'checking':
-            console.log('peerConnection checking')
+            // console.log('peerConnection checking')
             break
           case 'connected':
-            console.log('peerConnection connected')
+            // console.log('peerConnection connected')
             break
           case 'completed':
-            console.log('peerConnection completed')
+            // console.log('peerConnection completed')
             break
           case 'closed':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection closed', dataChannel.readyState)
+            // console.log('peerConnection closed', dataChannel.readyState)
             break
           case 'failed':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection failed', dataChannel.readyState)
+            // console.log('peerConnection failed', dataChannel.readyState)
             break
           case 'disconnected':
             if (dataChannel) {
-              console.log('dataChannel close request')
+              // console.log('dataChannel close request')
               dataChannel.close()
               dispatch(dataChannelOpenStatus(false))
             }
-            console.log('peerConnection disconnected', dataChannel.readyState)
+            // console.log('peerConnection disconnected', dataChannel.readyState)
             break
           default:
-            console.log('peerConnection default', peerConnection.iceConnectionState)
+            // console.log('peerConnection default', peerConnection.iceConnectionState)
         }
       }
       peerConnection.onicegatheringstatechange = (event) => {
-        console.log('onicegatheringstatechange', event, peerConnection.iceConnectionState)
+        // console.log('onicegatheringstatechange', event, peerConnection.iceConnectionState)
       }
       peerConnection.onicecandidate = (event) => {
         if (event.candidate) {
-          console.log('onicecandidate')
+          // console.log('onicecandidate')
           socket.emit('send_found_candidate', {
             selfType: 'Receiver',
             to: senderSocketID,
@@ -312,7 +314,7 @@ export const receiverConnect = (senderSocketID) => {
     })
     // 受信
     socket.on('send_found_candidate', async (obj) => {
-      console.log('onicecandidate found')
+      // console.log('onicecandidate found')
       await peerConnection.addIceCandidate(new RTCIceCandidate(obj.candidate))
     })
     dispatch(setSocket(socket))
