@@ -124,18 +124,22 @@ class FileController extends Component {
       // '\u00A0'.repeat(String(each.sendTime).length - String(each.sendPacketCount).length) + each.sendPacketCount
       const count = each.send === false ? false : (each.receiveComplete === false ? (each.delete ? false : each.sendPacketCount + '/' + each.sendTime) : false)
 
-      if (each.delete) return (
-        <li key={'filelist-' + i} className='send-filelist deleted'>
-          <div className='send-status'><span><span>取り消しました</span></span></div>
-          <div className='send-info'>
-            <div className='file-icon'>{icon}</div>
-            <div className='detail'>
-              <div className='file-name'>{each.name}</div>
-              <div className='send-size'><span>{fileSize}</span><span>{count}</span></div>
+      if (each.delete || each.err) {
+        const message = each.err ? '読み込みエラー' : '取り消しました'
+        const addClass = each.err ? ' err' : ''
+        return (
+          <li key={'filelist-' + i} className={'send-filelist deleted' + addClass}>
+            <div className='send-status'><span><span>{message}</span></span></div>
+            <div className='send-info'>
+              <div className='file-icon'>{icon}</div>
+              <div className='detail'>
+                <div className='file-name'>{each.name}</div>
+                <div className='send-size'><span>{fileSize}</span><span>{count}</span></div>
+              </div>
             </div>
-          </div>
-        </li>
-      )
+          </li>
+        )
+      }
 
       // load はファイルをあらかじめ開く場合に必要
       // const load = each.load === false ? 'wait' : each.load + '%'
@@ -179,19 +183,23 @@ class FileController extends Component {
       const icon = <i className={fileIcon(each.name, each.type)}></i>
       const fileSize = fileSizeUnit(each.size)
 
-      // 削除されたとき
-      if (each.delete) return (
-        <li key={'filelist-' + i} className='receive-filelist deleted'>
-          <div className='receive-status'><span>取り消されました</span></div>
-          <div className='receive-info'>
-            <div className='file-icon'>{icon}</div>
-            <div className='detail'>
-              <div className='file-name'>{each.name}</div>
-              <div className='receive-size'>{fileSize}</div>
+      // 削除もしくはエラー
+      if (each.delete || each.err) {
+        const message = each.err ? 'エラー' : '取り消されました'
+        const addClass = each.err ? ' err' : ''
+        return (
+          <li key={'filelist-' + i} className={'receive-filelist deleted' + addClass}>
+            <div className='receive-status'><span>{message}</span></div>
+            <div className='receive-info'>
+              <div className='file-icon'>{icon}</div>
+              <div className='detail'>
+                <div className='file-name'>{each.name}</div>
+                <div className='receive-size'>{fileSize}</div>
+              </div>
             </div>
-          </div>
-        </li>
-      )
+          </li>
+        )
+      }
 
       // 受信完了後
       if (this.props.receiveFileUrlList[each.id] && each.receiveResult) {

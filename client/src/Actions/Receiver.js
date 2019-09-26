@@ -229,6 +229,13 @@ export function receiverReceiveData (event, dispatch, getState) {
       updateReceiveFileList(deleteReceive.id, 'delete', true, dispatch, getState)
       resetReceiveFileStorage(deleteReceive.id, dispatch, getState)
       return
+    } else if (JSON.parse(event.data).err !== undefined) {
+      // ファイルエラー通知
+      // errプロパティを外す
+      const errReceive = JSON.parse(event.data).err
+      updateReceiveFileList(errReceive.id, 'err', true, dispatch, getState)
+      resetReceiveFileStorage(errReceive.id, dispatch, getState)
+      return
     } else if (JSON.parse(event.data).start !== undefined) {
       // ファイル受信開始
       // startプロパティを外す

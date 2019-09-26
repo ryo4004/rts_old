@@ -40,6 +40,7 @@ export const addFile = (fileList) => {
           timestamp: (new Date()).getTime(),
           add: true,
           delete: false,
+          err: false,
 
           // Sender用プロパティ(変更不可)
           // 読み込み状態
@@ -106,6 +107,24 @@ export const deleteFile = (id) => {
     }
     // console.log('ファイル削除')
     updateSendFileList(id, 'delete', true, dispatch, getState)
+  }
+}
+
+export const errorFile = (id) => {
+  return (dispatch, getState) => {
+    const errorFileList = getState().sender.sendFileList[id]
+    // preSendInfoを送信済みの場合はReceiverに削除を通知する
+    if (errorFileList.preSendInfo === true) {
+      const errorFileInfo = {
+        to: 'receiver',
+        err: {
+          id: id,
+        }
+      }
+      sendDataChannel(JSON.stringify(errorFileInfo))
+    }
+    // console.log('ファイル削除')
+    updateSendFileList(id, 'err', true, dispatch, getState)
   }
 }
 
@@ -202,74 +221,74 @@ function sendFileData (id, dispatch, getState) {
   // return sliceOpenSendFile(id, sendFileList[id], dispatch, getState)
 }
 
-// ファイルを分割して読み込む
-function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
-  // console.time('sendFileTotal' + id)
+// // ファイルを分割して読み込む
+// function sliceOpenSendFile (id, fileInfo, dispatch, getState) {
+//   // console.time('sendFileTotal' + id)
 
-  const file = fileInfo.file
+//   const file = fileInfo.file
 
-  // file.sizeとbyteLengthは同じっぽい(ファイル追加時に取得している)
-  // updateSendFileList(id, 'byteLength', fileInfo.size, dispatch, getState)
-  // updateSendFileList(id, 'sendTime', Math.ceil(fileInfo.size / packetSize), dispatch, getState)
-  // updateSendFileList(id, 'rest', fileInfo.size % packetSize, dispatch, getState)
-  const startFileInfo = {
-    to: 'receiver',
-    start: {
-      id: id
-    }
-  }
-  // console.log('ファイル送信準備')
-  // console.time('sendFile(' + id + ')')
-  sendDataChannel(JSON.stringify(startFileInfo))
+//   // file.sizeとbyteLengthは同じっぽい(ファイル追加時に取得している)
+//   // updateSendFileList(id, 'byteLength', fileInfo.size, dispatch, getState)
+//   // updateSendFileList(id, 'sendTime', Math.ceil(fileInfo.size / packetSize), dispatch, getState)
+//   // updateSendFileList(id, 'rest', fileInfo.size % packetSize, dispatch, getState)
+//   const startFileInfo = {
+//     to: 'receiver',
+//     start: {
+//       id: id
+//     }
+//   }
+//   // console.log('ファイル送信準備')
+//   // console.time('sendFile(' + id + ')')
+//   sendDataChannel(JSON.stringify(startFileInfo))
 
-  let start = 0
-  let sendPacketCount = 0
+//   let start = 0
+//   let sendPacketCount = 0
 
-  function openSend () {
-    if (getState().sender.sendFileList[id].delete) {
-      // console.log('削除されたため中断', id)
-      return
-    }
-    if (!(start < file.size)) {
-      const endFileInfo = {
-        to: 'receiver',
-        end: {
-          id,
-        }
-      }
-      sendDataChannel(JSON.stringify(endFileInfo))
-      updateSendFileList(id, 'send', 100, dispatch, getState)
-      // console.timeEnd('sendFile(' + id + ')')
-      // console.log('ファイル送信完了')
-      return
-    }
-    let end = start + packetSize
-    const fs = new FileReader()
-    fs.onloadend = (event) => {
-      if (event.target.readyState == FileReader.DONE) {
-        // 送信するpacketの準備
-        let packetData = event.target.result
-        let packet = new Uint8Array(packetData.byteLength + flagLength + idLength)
-        packet[0] = (end >= file.size ? 1 : 0)
-        packet.set(fileInfo.idBuffer, flagLength)
-        packet.set(new Uint8Array(packetData), flagLength + idLength)
-        // Chrome待機用(不要になったかも)
-        while (dataChannelBufferedAmount() > 0) {}
-        // 送信および状態更新
-        sendDataChannel(packet)
-        updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
-        updateSendFileList(id, 'sendPacketCount', sendPacketCount+1, dispatch, getState)        
-        sendPacketCount++
-        start = end
-        // console.log('データ送信中')
-        setTimeout(openSend())
-      }
-    }
-    let blob = file.webkitSlice ? file.webkitSlice(start, end) : (file.mozSlice ? file.mozSlice(start, end) : file.slice(start, end))
-    fs.readAsArrayBuffer(blob)
-  }
-  openSend()
-}
+//   function openSend () {
+//     if (getState().sender.sendFileList[id].delete) {
+//       // console.log('削除されたため中断', id)
+//       return
+//     }
+//     if (!(start < file.size)) {
+//       const endFileInfo = {
+//         to: 'receiver',
+//         end: {
+//           id,
+//         }
+//       }
+//       sendDataChannel(JSON.stringify(endFileInfo))
+//       updateSendFileList(id, 'send', 100, dispatch, getState)
+//       // console.timeEnd('sendFile(' + id + ')')
+//       // console.log('ファイル送信完了')
+//       return
+//     }
+//     let end = start + packetSize
+//     const fs = new FileReader()
+//     fs.onloadend = (event) => {
+//       if (event.target.readyState == FileReader.DONE) {
+//         // 送信するpacketの準備
+//         let packetData = event.target.result
+//         let packet = new Uint8Array(packetData.byteLength + flagLength + idLength)
+//         packet[0] = (end >= file.size ? 1 : 0)
+//         packet.set(fileInfo.idBuffer, flagLength)
+//         packet.set(new Uint8Array(packetData), flagLength + idLength)
+//         // Chrome待機用(不要になったかも)
+//         while (dataChannelBufferedAmount() > 0) {}
+//         // 送信および状態更新
+//         sendDataChannel(packet)
+//         updateSendFileList(id, 'send', Math.ceil(sendPacketCount / fileInfo.sendTime * 1000.0) / 10.0, dispatch, getState)
+//         updateSendFileList(id, 'sendPacketCount', sendPacketCount+1, dispatch, getState)        
+//         sendPacketCount++
+//         start = end
+//         // console.log('データ送信中')
+//         setTimeout(openSend())
+//       }
+//     }
+//     let blob = file.webkitSlice ? file.webkitSlice(start, end) : (file.mozSlice ? file.mozSlice(start, end) : file.slice(start, end))
+//     fs.readAsArrayBuffer(blob)
+//   }
+//   openSend()
+// }
 
 function openSendFile (id, fileInfo, dispatch, getState) {
   if (!getState().connection.dataChannelOpenStatus) {
@@ -282,12 +301,15 @@ function openSendFile (id, fileInfo, dispatch, getState) {
     updateSendFileList(id, 'load', 0, dispatch, getState)
   }
   fileReader.onabort = (event) => { console.log('fileReader onabort', event) }
-  fileReader.onerror = (event) => { console.log('fileReader onerror', event) }
+  fileReader.onerror = (event) => {
+    console.log('fileReader onerror', event)
+    dispatch(errorFile(id))
+  }
   fileReader.onloadend = (event) => {
     updateSendFileList(id, 'load', 100, dispatch, getState)
   }
   fileReader.onprogress = (event) => {
-    console.log('load', event.loaded)
+    // console.log('load', event.loaded)
     const percent = Math.ceil(event.loaded / event.total * 1000.0) / 10.0
     updateSendFileList(id, 'load', percent, dispatch, getState)
   }
