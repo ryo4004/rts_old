@@ -114,7 +114,7 @@ class Home extends Component {
             </div>
             <h3>その他</h3>
             <p>
-              詳しくは<a href='https://zatsuzen.com/blog/rts/' target='_blank'>こちら</a>(まだ書いてない笑)
+              詳しくは<a href='https://blog.zatsuzen.com/blog/rts/' target='_blank'>こちら</a>(まだ書いてない笑)
             </p>
             <h3>免責事項</h3>
             <p>
