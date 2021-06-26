@@ -10,11 +10,11 @@
     "build-production": "webpack --config webpack.prod.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "build-css": "node-sass-chokidar client/src/ -o client/src/ --output-style compressed",
-    "watch-css": "npm run build-css && webpack -w",
-    "build": "npm run build-css && npm run build-js",
-    "build-prod": "npm run build-css && npm run build-production",
-    "build-dev": "npm run build-css && npm run build-js -- --devtool source-map",
-    "dev-start": "npm run build-dev; DEBUG=express:* node app.js"
+    "watch-css": "yarn build-css && webpack -w",
+    "build": "yarn build-css && yarn build-js",
+    "build-prod": "yarn build-css && yarn build-production",
+    "build-dev": "yarn build-css && yarn build-js -- --devtool source-map",
+    "dev-start": "yarn build-dev; DEBUG=express:* node app.js"
   },
   "author": "",
   "license": "ISC",
